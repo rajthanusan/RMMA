@@ -40,10 +40,10 @@ export default function ProfileScreen({ navigation }) {
         username,
         email,
         password,
-        role: 'user', // Explicitly set the role (optional; default is handled server-side)
+        role: 'user', 
       });
       Alert.alert('Success', response.data.message);
-      setIsRegister(false); // Switch to login mode after registration
+      setIsRegister(false); 
     } catch (error) {
       Alert.alert('Error', error.response?.data?.error || 'Registration failed');
     }
@@ -56,15 +56,15 @@ export default function ProfileScreen({ navigation }) {
         password,
       });
 
-      const { message, role } = response.data; // Removed 'token'
+      const { message, role } = response.data; 
 
       Alert.alert('Success', message);
-      setIsLoggedIn(true); // Set logged-in state
+      setIsLoggedIn(true); 
 
       if (role === 'admin') {
-        navigation.navigate('AdminPage'); // Navigate to AdminPage
+        navigation.navigate('AdminPage'); 
       } else {
-        navigation.navigate('User'); // Navigate to User page
+        navigation.navigate('User'); 
       }
     } catch (error) {
       Alert.alert('Error', error.response?.data?.error || 'Login failed');

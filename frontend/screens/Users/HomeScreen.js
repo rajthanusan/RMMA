@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import PropTypes from 'prop-types'; // Import PropTypes
 
-// CategoryItem Component
 const CategoryItem = ({ icon, name }) => (
   <TouchableOpacity style={styles.categoryItem}>
     <View style={styles.categoryIcon}>
@@ -22,39 +20,30 @@ const CategoryItem = ({ icon, name }) => (
   </TouchableOpacity>
 );
 
-// Add PropTypes for CategoryItem
-CategoryItem.propTypes = {
-  icon: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-};
-
-// RestaurantCard Component
-const RestaurantCard = ({ image, name, rating, cuisine, onPress }) => (
-  <TouchableOpacity style={styles.restaurantCard} onPress={onPress}>
-    <Image source={image} style={styles.restaurantImage} />
+const RestaurantCard = ({ image, name, rating, category }) => (
+  <TouchableOpacity style={styles.restaurantCard}>
+    <Image source={{ uri: image }} style={styles.restaurantImage} />
     <View style={styles.restaurantInfo}>
       <Text style={styles.restaurantName}>{name}</Text>
       <View style={styles.restaurantMeta}>
         <Ionicons name="star" size={16} color="#FFD700" />
         <Text style={styles.restaurantRating}>{rating}</Text>
-        <Text style={styles.restaurantCuisine}>{cuisine}</Text>
+        <Text style={styles.restaurantCuisine}>{category}</Text>
       </View>
     </View>
   </TouchableOpacity>
 );
 
-// Add PropTypes for RestaurantCard
-RestaurantCard.propTypes = {
-  image: PropTypes.node.isRequired, // Image is a React node (e.g., require image)
-  name: PropTypes.string.isRequired,
-  rating: PropTypes.string.isRequired,
-  cuisine: PropTypes.string.isRequired,
-  onPress: PropTypes.func.isRequired,
-};
-
-// HomeScreen Component
 export default function HomeScreen({ route, navigation }) {
   const username = route.params?.username || 'User';
+  const [foodItems, setFoodItems] = useState([]);
+
+  useEffect(() => {
+    fetch('http://192.168.8.119:5000/api/food-items')
+      .then((response) => response.json())
+      .then((data) => setFoodItems(data))
+      .catch((error) => console.error('Error fetching food items:', error));
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -94,38 +83,20 @@ export default function HomeScreen({ route, navigation }) {
         {/* Popular Restaurants Section */}
         <Text style={styles.sectionTitle}>Popular Restaurants</Text>
         <View style={styles.restaurantsContainer}>
-          <RestaurantCard
-            image={require('../../assets/images/food1.jpeg')}
-            name="Burger Palace"
-            rating="4.8"
-            cuisine="American"
-            onPress={() => navigation.navigate('Restaurant', { id: 1 })}
-          />
-          <RestaurantCard
-            image={require('../../assets/images/food1.jpeg')}
-            name="Sushi Haven"
-            rating="4.6"
-            cuisine="Japanese"
-            onPress={() => navigation.navigate('Restaurant', { id: 2 })}
-          />
-          <RestaurantCard
-            image={require('../../assets/images/food1.jpeg')}
-            name="Pizza Paradise"
-            rating="4.7"
-            cuisine="Italian"
-            onPress={() => navigation.navigate('Restaurant', { id: 3 })}
-          />
+          {foodItems.map((item) => (
+            <RestaurantCard
+              key={item._id}
+              image={item.image}
+              name={item.name}
+              rating={item.rating}
+              category={item.category}
+            />
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-// Add PropTypes for HomeScreen
-HomeScreen.propTypes = {
-  route: PropTypes.object.isRequired,
-  navigation: PropTypes.object.isRequired,
-};
 
 const styles = StyleSheet.create({
   container: {

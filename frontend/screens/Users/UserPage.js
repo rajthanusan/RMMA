@@ -41,7 +41,7 @@ function MainTabs() {
               iconName = focused ? 'person' : 'person-outline';
               break;
             default:
-              iconName = 'help-circle-outline'; // Default icon
+              iconName = 'help-circle-outline'; 
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;

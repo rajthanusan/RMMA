@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import PropTypes from 'prop-types';  // Import PropTypes
+import PropTypes from 'prop-types';  
 
 const history = [
   { id: '1', date: '2023-05-15', action: 'Reservation', details: 'Table for 4 at 7:00 PM' },
@@ -17,11 +17,11 @@ const HistoryItem = ({ date, action, details }) => (
   </View>
 );
 
-// Prop validation for HistoryItem
+
 HistoryItem.propTypes = {
-  date: PropTypes.string.isRequired,     // date should be a required string
-  action: PropTypes.string.isRequired,   // action should be a required string
-  details: PropTypes.string.isRequired,  // details should be a required string
+  date: PropTypes.string.isRequired,     
+  action: PropTypes.string.isRequired,   
+  details: PropTypes.string.isRequired,  
 };
 
 export default function HistoryScreen() {

@@ -16,9 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
-import PropTypes from 'prop-types'; // Import PropTypes
+import PropTypes from 'prop-types'; 
 
-// CategoryItem Component
+
 const CategoryItem = ({ icon, name, onPress }) => (
   <TouchableOpacity style={styles.categoryItem} onPress={() => onPress(name)}>
     <View style={styles.categoryIcon}>
@@ -34,7 +34,7 @@ CategoryItem.propTypes = {
   onPress: PropTypes.func.isRequired,
 };
 
-// RestaurantCard Component
+
 const RestaurantCard = ({ image, name, rating, cuisine, onPress }) => (
   <TouchableOpacity style={styles.restaurantCard} onPress={onPress}>
     <Image source={image} style={styles.restaurantImage} />
@@ -50,14 +50,14 @@ const RestaurantCard = ({ image, name, rating, cuisine, onPress }) => (
 );
 
 RestaurantCard.propTypes = {
-  image: PropTypes.node.isRequired, // Image is a React node (e.g., require image)
+  image: PropTypes.node.isRequired, 
   name: PropTypes.string.isRequired,
   rating: PropTypes.string.isRequired,
   cuisine: PropTypes.string.isRequired,
   onPress: PropTypes.func.isRequired,
 };
 
-// HomeScreen Component
+
 export default function HomeScreen({navigation }) {
   const [foodItems, setFoodItems] = useState([]);
   const [filteredFoodItems, setFilteredFoodItems] = useState([]);
@@ -70,28 +70,20 @@ export default function HomeScreen({navigation }) {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [categoryOptions] = useState(['Appetizers', 'Main Courses', 'Desserts', 'Drinks', 'Snacks']);
+  const API_URL = 'http://192.168.8.119:5000'; 
 
   useEffect(() => {
     const loadFoodItems = async () => {
       const data = await fetchFoodItems();
       setFoodItems(data);
-      setFilteredFoodItems(data);  // Initially show all food items
+      setFilteredFoodItems(data);
     };
     loadFoodItems();
   }, []);
 
-  const addFoodItem = async (foodItem) => {
-    try {
-      const response = await axios.post('http://192.168.8.119:5000/api/food-items', foodItem);
-      console.log('Food item added:', response.data);
-    } catch (error) {
-      console.error('Error adding food item:', error.response?.data || error.message);
-    }
-  };
-
   const fetchFoodItems = async () => {
     try {
-      const response = await axios.get('http://192.168.8.119:5000/api/food-items');
+      const response = await axios.get(`${API_URL}/api/food-items`);
       return response.data;
     } catch (error) {
       console.error('Error fetching food items:', error.response?.data || error.message);
@@ -104,11 +96,29 @@ export default function HomeScreen({navigation }) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-    await addFoodItem(newFoodItem);
-    const updatedItems = await fetchFoodItems();
-    setFoodItems(updatedItems);
-    setFilteredFoodItems(updatedItems); // Update filtered items as well
-    setNewFoodItem({ image: '', name: '', rating: '', category: '' });
+  
+    const formData = new FormData();
+    formData.append('image', {
+      uri: newFoodItem.image,
+      name: 'photo.jpg',
+      type: 'image/jpeg',
+    });
+    formData.append('name', newFoodItem.name);
+    formData.append('rating', newFoodItem.rating);
+    formData.append('category', newFoodItem.category);
+  
+    try {
+      const response = await axios.post(`${API_URL}/api/food-items`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      console.log('Food item added:', response.data);
+      const updatedItems = await fetchFoodItems();
+      setFoodItems(updatedItems);
+      setFilteredFoodItems(updatedItems);
+      setNewFoodItem({ image: '', name: '', rating: '', category: '' });
+    } catch (error) {
+      console.error('Error adding food item:', error.response?.data || error.message);
+    }
   };
 
   const pickImage = async () => {
@@ -136,7 +146,7 @@ export default function HomeScreen({navigation }) {
 
   const handleCategoryFilter = (category) => {
     if (category === 'All') {
-      setFilteredFoodItems(foodItems); // Show all food items
+      setFilteredFoodItems(foodItems); 
     } else {
       const filteredItems = foodItems.filter((item) => item.category === category);
       setFilteredFoodItems(filteredItems);
@@ -236,19 +246,22 @@ export default function HomeScreen({navigation }) {
         </ScrollView>
 
         {/* Food Items Section */}
-        <Text style={styles.sectionTitle}>Food Items</Text>
-<View style={styles.foodItemsContainer}>
-  {filteredFoodItems.map((item) => (
-    <View key={item._id} style={styles.foodItemCard}>
-      {item.image ? (
-        <Image source={{ uri: item.image }} style={styles.foodImage} />
-      ) : null}
-      <Text style={styles.foodName}>{item.name}</Text>
-      <Text style={styles.foodCategory}>{item.category}</Text>
-      <Text style={styles.foodRating}>Rating: {item.rating}</Text>
-    </View>
-  ))}
-</View>
+        <View style={styles.foodItemsContainer}>
+          {filteredFoodItems.map((item) => (
+            <View key={item._id} style={styles.foodItemCard}>
+              <Image
+                source={{ uri: item.image }}
+                style={styles.foodImage}
+                onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
+              />
+              <Text style={styles.foodName}>{item.name}</Text>
+              <Text style={styles.foodCategory}>{item.category}</Text>
+              <Text style={styles.foodRating}>Rating: {item.rating}</Text>
+            </View>
+          ))}
+        </View>
+
+
 
         
       </ScrollView>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import PropTypes from 'prop-types';  // Import PropTypes
+import PropTypes from 'prop-types';  
 
 const events = [
   {
@@ -34,11 +34,11 @@ const EventItem = ({ title, date, image }) => (
   </TouchableOpacity>
 );
 
-// Prop validation for EventItem
+
 EventItem.propTypes = {
-  title: PropTypes.string.isRequired,   // title should be a required string
-  date: PropTypes.string.isRequired,    // date should be a required string
-  image: PropTypes.any.isRequired,      // image can be any type (usually requires an image source)
+  title: PropTypes.string.isRequired,   
+  date: PropTypes.string.isRequired,    
+  image: PropTypes.any.isRequired,      
 };
 
 export default function EventsScreen() {
