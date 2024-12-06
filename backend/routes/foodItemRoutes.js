@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const foodItemController = require('../controllers/foodItemController');
 
-// Configure multer storage
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, './uploads/');
@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Define routes
+
 router.get('/food-items', foodItemController.getFoodItems);
 router.post('/food-items', upload.single('image'), foodItemController.addFoodItem);
 

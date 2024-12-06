@@ -21,7 +21,7 @@ exports.addFoodItem = async (req, res) => {
   }
 
   try {
-    const imagePath = req.file.path.replace(/\\/g, '/'); // Replace backslashes with forward slashes
+    const imagePath = req.file.path.replace(/\\/g, '/'); 
     const newFoodItem = new FoodItem({
       name,
       rating,
