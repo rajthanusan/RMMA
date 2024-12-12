@@ -8,6 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const authRoutes = require('./routes/authRoutes');
 const foodItemRoutes = require('./routes/foodItemRoutes');
+const eventRoutes = require('./routes/eventRoutes');
+const reservationRoutes = require('./routes/reservation');
 
 dotenv.config();
 
@@ -34,6 +36,8 @@ mongoose
 
 app.use('/api', authRoutes);
 app.use('/api', foodItemRoutes);
+app.use('/api', eventRoutes);
+app.use('/api', reservationRoutes);
 
 
 app.listen(PORT, () => {
