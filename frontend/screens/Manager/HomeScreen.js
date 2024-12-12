@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import PropTypes from 'prop-types'; 
+import config from '../../config';
 
 
 const CategoryItem = ({ icon, name, onPress }) => (
@@ -58,7 +59,7 @@ RestaurantCard.propTypes = {
 };
 
 
-export default function HomeScreen({navigation }) {
+export default function HomeScreen({ navigation }) {
   const [foodItems, setFoodItems] = useState([]);
   const [filteredFoodItems, setFilteredFoodItems] = useState([]);
   const [newFoodItem, setNewFoodItem] = useState({
@@ -67,10 +68,11 @@ export default function HomeScreen({navigation }) {
     rating: '',
     category: '',
   });
-
   const [modalVisible, setModalVisible] = useState(false);
   const [categoryOptions] = useState(['Appetizers', 'Main Courses', 'Desserts', 'Drinks', 'Snacks']);
-  const API_URL = 'http://192.168.8.119:5000'; 
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+
 
   useEffect(() => {
     const loadFoodItems = async () => {
@@ -83,7 +85,7 @@ export default function HomeScreen({navigation }) {
 
   const fetchFoodItems = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/food-items`);
+      const response = await axios.get(`${config.API_URL}/api/food-items`);
       return response.data;
     } catch (error) {
       console.error('Error fetching food items:', error.response?.data || error.message);
@@ -96,7 +98,7 @@ export default function HomeScreen({navigation }) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-  
+
     const formData = new FormData();
     formData.append('image', {
       uri: newFoodItem.image,
@@ -106,9 +108,9 @@ export default function HomeScreen({navigation }) {
     formData.append('name', newFoodItem.name);
     formData.append('rating', newFoodItem.rating);
     formData.append('category', newFoodItem.category);
-  
+
     try {
-      const response = await axios.post(`${API_URL}/api/food-items`, formData, {
+      const response = await axios.post(`${config.API_URL}/api/food-items`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       console.log('Food item added:', response.data);
@@ -116,8 +118,52 @@ export default function HomeScreen({navigation }) {
       setFoodItems(updatedItems);
       setFilteredFoodItems(updatedItems);
       setNewFoodItem({ image: '', name: '', rating: '', category: '' });
+      setShowAddForm(false);
     } catch (error) {
       console.error('Error adding food item:', error.response?.data || error.message);
+    }
+  };
+
+  const handleEditFoodItem = async () => {
+    if (!editingItem || !editingItem.name || !editingItem.rating || !editingItem.category) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    const formData = new FormData();
+    if (editingItem.image && editingItem.image !== editingItem.originalImage) {
+      formData.append('image', {
+        uri: editingItem.image,
+        name: 'photo.jpg',
+        type: 'image/jpeg',
+      });
+    }
+    formData.append('name', editingItem.name);
+    formData.append('rating', editingItem.rating);
+    formData.append('category', editingItem.category);
+
+    try {
+      const response = await axios.put(`${config.API_URL}/api/food-items/${editingItem._id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      console.log('Food item updated:', response.data);
+      const updatedItems = await fetchFoodItems();
+      setFoodItems(updatedItems);
+      setFilteredFoodItems(updatedItems);
+      setEditingItem(null);
+    } catch (error) {
+      console.error('Error updating food item:', error.response?.data || error.message);
+    }
+  };
+
+  const handleDeleteFoodItem = async (id) => {
+    try {
+      await axios.delete(`${config.API_URL}/api/food-items/${id}`);
+      const updatedItems = await fetchFoodItems();
+      setFoodItems(updatedItems);
+      setFilteredFoodItems(updatedItems);
+    } catch (error) {
+      console.error('Error deleting food item:', error.response?.data || error.message);
     }
   };
 
@@ -135,23 +181,65 @@ export default function HomeScreen({navigation }) {
     });
 
     if (!result.canceled) {
-      setNewFoodItem({ ...newFoodItem, image: result.assets[0].uri });
+      if (editingItem) {
+        setEditingItem({ ...editingItem, image: result.assets[0].uri });
+      } else {
+        setNewFoodItem({ ...newFoodItem, image: result.assets[0].uri });
+      }
     }
   };
 
   const handleCategorySelect = (category) => {
-    setNewFoodItem({ ...newFoodItem, category });
+    if (editingItem) {
+      setEditingItem({ ...editingItem, category });
+    } else {
+      setNewFoodItem({ ...newFoodItem, category });
+    }
     setModalVisible(false);
   };
 
   const handleCategoryFilter = (category) => {
     if (category === 'All') {
-      setFilteredFoodItems(foodItems); 
+      setFilteredFoodItems(foodItems);
     } else {
       const filteredItems = foodItems.filter((item) => item.category === category);
       setFilteredFoodItems(filteredItems);
     }
   };
+
+  const renderFoodForm = () => (
+    <View style={styles.addFoodContainer}>
+      <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+        <Text style={styles.imagePickerText}>Pick an Image</Text>
+      </TouchableOpacity>
+      {(editingItem ? editingItem.image : newFoodItem.image) ? (
+        <Image source={{ uri: editingItem ? editingItem.image : newFoodItem.image }} style={styles.imagePreview} />
+      ) : null}
+      <TextInput
+        style={styles.input}
+        placeholder="Food Name"
+        value={editingItem ? editingItem.name : newFoodItem.name}
+        onChangeText={(text) => editingItem ? setEditingItem({ ...editingItem, name: text }) : setNewFoodItem({ ...newFoodItem, name: text })}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Rating (e.g., 4.5)"
+        value={editingItem ? editingItem.rating : newFoodItem.rating}
+        onChangeText={(text) => editingItem ? setEditingItem({ ...editingItem, rating: text }) : setNewFoodItem({ ...newFoodItem, rating: text })}
+      />
+      <TouchableOpacity style={styles.dropdown} onPress={() => setModalVisible(true)}>
+        <Text style={styles.dropdownText}>{editingItem ? editingItem.category : newFoodItem.category || 'Select Category'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.addButton} onPress={editingItem ? handleEditFoodItem : handleAddFoodItem}>
+        <Text style={styles.addButtonText}>{editingItem ? 'Update Food Item' : 'Add Food Item'}</Text>
+      </TouchableOpacity>
+      {editingItem && (
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: '#999' }]} onPress={() => setEditingItem(null)}>
+          <Text style={styles.addButtonText}>Cancel Edit</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -160,79 +248,20 @@ export default function HomeScreen({navigation }) {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Hello, Admin!</Text>
-            <Text style={styles.subGreeting}>What would you like to add?</Text>
+            <Text style={styles.subGreeting}>Manage your food items</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
             <Icon name="person" size={40} color="#FF4B3A" />
           </TouchableOpacity>
         </View>
 
-        {/* Search Bar */}
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#999" />
-          <Text style={styles.searchText}>Search for restaurants or foods</Text>
-        </View>
+        {/* Add Food Button */}
+        <TouchableOpacity style={styles.addButton} onPress={() => setShowAddForm(!showAddForm)}>
+          <Text style={styles.addButtonText}>{showAddForm ? 'Hide Add Form' : 'Add New Food Item'}</Text>
+        </TouchableOpacity>
 
-        {/* Add Food Item Section */}
-        <Text style={styles.sectionTitle}>Add Food Item</Text>
-        <View style={styles.addFoodContainer}>
-          <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
-            <Text style={styles.imagePickerText}>Pick an Image</Text>
-          </TouchableOpacity>
-          {newFoodItem.image ? (
-            <Image source={{ uri: newFoodItem.image }} style={styles.imagePreview} />
-          ) : null}
-          <TextInput
-            style={styles.input}
-            placeholder="Food Name"
-            value={newFoodItem.name}
-            onChangeText={(text) => setNewFoodItem({ ...newFoodItem, name: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Rating (e.g., 4.5)"
-            value={newFoodItem.rating}
-            onChangeText={(text) => setNewFoodItem({ ...newFoodItem, rating: text })}
-          />
-          
-          {/* Dropdown for category */}
-          <TouchableOpacity style={styles.dropdown} onPress={() => setModalVisible(true)}>
-            <Text style={styles.dropdownText}>{newFoodItem.category || 'Select Category'}</Text>
-          </TouchableOpacity>
-          
-          {/* Modal for category selection */}
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => setModalVisible(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContainer}>
-                <FlatList
-                  data={categoryOptions}
-                  keyExtractor={(item) => item}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.modalItem}
-                      onPress={() => handleCategorySelect(item)}
-                    >
-                      <Text style={styles.modalItemText}>{item}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
-                <TouchableOpacity style={styles.modalCloseButton} onPress={() => setModalVisible(false)}>
-                  <Text style={styles.modalCloseText}>Close</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-
-          {/* Add Food Item Button */}
-          <TouchableOpacity style={styles.addButton} onPress={handleAddFoodItem}>
-            <Text style={styles.addButtonText}>Add Food Item</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Add/Edit Food Form */}
+        {(showAddForm || editingItem) && renderFoodForm()}
 
         {/* Categories Section */}
         <Text style={styles.sectionTitle}>Categories</Text>
@@ -257,13 +286,48 @@ export default function HomeScreen({navigation }) {
               <Text style={styles.foodName}>{item.name}</Text>
               <Text style={styles.foodCategory}>{item.category}</Text>
               <Text style={styles.foodRating}>Rating: {item.rating}</Text>
+              <View style={styles.foodItemActions}>
+  <TouchableOpacity onPress={() => setEditingItem(item)}>
+    <Ionicons name="create-outline" size={24} color="#FF4B3A" />
+  </TouchableOpacity>
+  <TouchableOpacity onPress={() => handleDeleteFoodItem(item._id)}>
+    <Ionicons name="trash-outline" size={24} color="#FF4B3A" />
+  </TouchableOpacity>
+
+
+                
+              </View>
             </View>
           ))}
         </View>
 
-
-
-        
+        {/* Modal for category selection */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <FlatList
+                data={categoryOptions}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.modalItem}
+                    onPress={() => handleCategorySelect(item)}
+                  >
+                    <Text style={styles.modalItemText}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity style={styles.modalCloseButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.modalCloseText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -437,4 +501,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  foodCategory: {
+    fontSize: 14,
+    color: '#777',
+    marginBottom: 5,
+  },
+  foodRating: {
+    fontSize: 14,
+    color: '#777',
+  },
+  editButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  editButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+  },
+  deleteButton: {
+    backgroundColor: '#F44336',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  deleteButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+  },
+  foodItemActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 10,
+  },
 });
+

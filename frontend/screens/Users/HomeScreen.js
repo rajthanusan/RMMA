@@ -1,29 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   Image,
   TouchableOpacity,
+  TextInput,
+  FlatList,
+  StatusBar,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import config from '../../config';
 
-const CategoryItem = ({ icon, name }) => (
-  <TouchableOpacity style={styles.categoryItem}>
-    <View style={styles.categoryIcon}>
-      <Ionicons name={icon} size={24} color="#FF4B3A" />
+const { width } = Dimensions.get('window');
+
+
+const CategoryItem = ({ icon, name, onPress, isSelected }) => (
+  <TouchableOpacity 
+    style={[styles.categoryItem, isSelected && styles.selectedCategory]} 
+    onPress={onPress}
+  >
+    <View style={[styles.categoryIcon, isSelected && styles.selectedCategoryIcon]}>
+      <Ionicons name={icon} size={24} color={isSelected ? "#FFFFFF" : "#FF4B3A"} />
     </View>
-    <Text style={styles.categoryName}>{name}</Text>
+    <Text style={[styles.categoryName, isSelected && styles.selectedCategoryText]}>{name}</Text>
   </TouchableOpacity>
 );
+
 
 const RestaurantCard = ({ image, name, rating, category }) => (
   <TouchableOpacity style={styles.restaurantCard}>
     <Image source={{ uri: image }} style={styles.restaurantImage} />
-    <View style={styles.restaurantInfo}>
+    <View style={styles.restaurantOverlay}>
       <Text style={styles.restaurantName}>{name}</Text>
       <View style={styles.restaurantMeta}>
         <Ionicons name="star" size={16} color="#FFD700" />
@@ -35,65 +46,112 @@ const RestaurantCard = ({ image, name, rating, category }) => (
 );
 
 export default function HomeScreen({ route, navigation }) {
-  const username = route.params?.username || 'User';
+  const username = route.params?.username || 'Food Lover';
   const [foodItems, setFoodItems] = useState([]);
+  const [filteredFoodItems, setFilteredFoodItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  
+  const categories = [
+    { icon: "restaurant", name: "All" },
+    { icon: "pizza", name: "Appetizers" },  
+    { icon: "restaurant", name: "Main Courses" },  
+    { icon: "ice-cream", name: "Desserts" },  
+    { icon: "beer", name: "Drinks" },  
+    { icon: "fast-food", name: "Snacks" },  
+  ];
 
   useEffect(() => {
-    fetch('http://192.168.8.119:5000/api/food-items')
+    fetch(`${config.API_URL}/api/food-items`)
       .then((response) => response.json())
-      .then((data) => setFoodItems(data))
+      .then((data) => {
+        setFoodItems(data);
+        setFilteredFoodItems(data);
+      })
       .catch((error) => console.error('Error fetching food items:', error));
   }, []);
 
+  useEffect(() => {
+    const filtered = foodItems.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+    setFilteredFoodItems(filtered);
+  }, [searchQuery, selectedCategory, foodItems]);
+
+  const handleCategoryPress = useCallback((category) => {
+    setSelectedCategory(category);
+  }, []);
+
+  const renderCategoryItem = useCallback(({ item }) => (
+    <CategoryItem
+      icon={item.icon}
+      name={item.name}
+      onPress={() => handleCategoryPress(item.name)}
+      isSelected={selectedCategory === item.name}
+    />
+  ), [selectedCategory, handleCategoryPress]);
+
+  const renderRestaurantItem = useCallback(({ item }) => (
+    <RestaurantCard
+      image={item.image}
+      name={item.name}
+      rating={item.rating}
+      category={item.category}
+    />
+  ), []);
+
+  const ListHeaderComponent = useCallback(() => (
+    <>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>Hello, {username}!</Text>
+          <Text style={styles.subGreeting}>Discover the best foods</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <View style={styles.profileButton}>
+            <Icon name="person" size={24} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={20} color="#999" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search for restaurants or foods"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      <Text style={styles.sectionTitle}>Categories</Text>
+      <FlatList
+        data={categories}
+        renderItem={renderCategoryItem}
+        keyExtractor={(item) => item.name}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoriesContainer}
+      />
+
+      <Text style={styles.sectionTitle}>Popular Restaurants</Text>
+    </>
+  ), [username, navigation, searchQuery, categories, renderCategoryItem]);
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Hello, {username}!</Text>
-            <Text style={styles.subGreeting}>What would you like to eat?</Text>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-            <Icon name="person" size={40} color="#FF4B3A" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Search Bar */}
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#999" />
-          <Text style={styles.searchText}>Search for restaurants or foods</Text>
-        </View>
-
-        {/* Categories Section */}
-        <Text style={styles.sectionTitle}>Categories</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoriesContainer}
-        >
-          <CategoryItem icon="list" name="All" />
-          <CategoryItem icon="restaurant" name="Appetizers" />
-          <CategoryItem icon="pizza" name="Main Courses" />
-          <CategoryItem icon="ice-cream" name="Desserts" />
-          <CategoryItem icon="beer" name="Drinks" />
-          <CategoryItem icon="fast-food" name="Snacks" />
-        </ScrollView>
-
-        {/* Popular Restaurants Section */}
-        <Text style={styles.sectionTitle}>Popular Restaurants</Text>
-        <View style={styles.restaurantsContainer}>
-          {foodItems.map((item) => (
-            <RestaurantCard
-              key={item._id}
-              image={item.image}
-              name={item.name}
-              rating={item.rating}
-              category={item.category}
-            />
-          ))}
-        </View>
-      </ScrollView>
+      <StatusBar barStyle="dark-content" />
+      <FlatList
+        data={filteredFoodItems}
+        renderItem={renderRestaurantItem}
+        keyExtractor={(item) => item._id}
+        ListHeaderComponent={ListHeaderComponent()}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.restaurantsContainer}
+      />
     </SafeAreaView>
   );
 }
@@ -109,14 +167,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 10,
   },
   greeting: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#333',
   },
   subGreeting: {
     fontSize: 16,
     color: '#666',
+    marginTop: 4,
+  },
+  profileButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FF4B3A',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   searchBar: {
     flexDirection: 'row',
@@ -127,10 +196,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingHorizontal: 15,
     paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  searchText: {
+  searchInput: {
+    flex: 1,
     marginLeft: 10,
-    color: '#999',
+    fontSize: 16,
   },
   sectionTitle: {
     fontSize: 20,
@@ -138,13 +213,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 30,
     marginBottom: 15,
+    color: '#333',
   },
   categoriesContainer: {
     paddingHorizontal: 15,
   },
   categoryItem: {
     alignItems: 'center',
-    marginHorizontal: 5,
+    marginHorizontal: 8,
   },
   categoryIcon: {
     width: 60,
@@ -153,30 +229,55 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFE5E5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 8,
+  },
+  selectedCategoryIcon: {
+    backgroundColor: '#FF4B3A',
   },
   categoryName: {
     fontSize: 12,
+    color: '#333',
+    fontWeight: '600',
+  },
+  selectedCategory: {
+    backgroundColor: 'transparent',
+  },
+  selectedCategoryText: {
+    color: '#FF4B3A',
+    fontWeight: 'bold',
   },
   restaurantsContainer: {
     paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   restaurantCard: {
     backgroundColor: '#fff',
     borderRadius: 15,
     marginBottom: 20,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   restaurantImage: {
     width: '100%',
-    height: 150,
+    height: 200,
   },
-  restaurantInfo: {
-    padding: 15,
+  restaurantOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
   restaurantName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#fff',
     marginBottom: 5,
   },
   restaurantMeta: {
@@ -186,9 +287,11 @@ const styles = StyleSheet.create({
   restaurantRating: {
     marginLeft: 5,
     marginRight: 10,
+    color: '#fff',
     fontWeight: 'bold',
   },
   restaurantCuisine: {
-    color: '#666',
+    color: '#eee',
   },
 });
+

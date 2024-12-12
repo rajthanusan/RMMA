@@ -1,0 +1,121 @@
+import React, { useState, useEffect } from 'react';
+import { Text, StyleSheet, TouchableOpacity, ScrollView, Alert, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import config from '../../config';
+
+export default function AdminReservationScreen() {
+  const [reservations, setReservations] = useState([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [date, setDate] = useState(new Date());
+  
+  useEffect(() => {
+    
+    axios.get(`${config.API_URL}/api/reserve`)
+      .then((response) => {
+        
+        const sortedReservations = response.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+        setReservations(sortedReservations);
+      })
+      .catch((error) => {
+        console.error("Error fetching reservations:", error);
+      });
+  }, []);
+
+  const handleDelete = (id) => {
+    
+    axios.delete(`${config.API_URL}/api/reserve/${id}`)
+      .then(() => {
+        setReservations(reservations.filter(reservation => reservation._id !== id));
+        Alert.alert("Reservation Deleted", "The reservation has been successfully deleted.");
+      })
+      .catch((error) => {
+        console.error("Error deleting reservation:", error);
+        Alert.alert("Error", "Failed to delete the reservation.");
+      });
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <Text style={styles.title}>Reservations</Text>
+        
+        {reservations.length === 0 ? (
+          <Text style={styles.noDataText}>No reservations available.</Text>
+        ) : (
+          reservations.map((reservation) => (
+            <View key={reservation._id} style={styles.reservationCard}>
+              <Text style={styles.reservationTitle}>{reservation.name}</Text>
+              <Text style={styles.reservationDetails}>Phone: {reservation.phone}</Text>
+              <Text style={styles.reservationDetails}>Guests: {reservation.guests}</Text>
+              <Text style={styles.reservationDetails}>Date: {reservation.date}</Text>
+              <Text style={styles.reservationDetails}>Time: {reservation.time}</Text>
+
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDelete(reservation._id)}
+              >
+                <Text style={styles.deleteButtonText}>Delete Reservation</Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#333',
+  },
+  noDataText: {
+    fontSize: 18,
+    color: '#777',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  reservationCard: {
+    backgroundColor: '#f9f9f9',
+    padding: 15,
+    marginBottom: 15,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  reservationTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  reservationDetails: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 5,
+  },
+  deleteButton: {
+    backgroundColor: '#FF4B3A',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});

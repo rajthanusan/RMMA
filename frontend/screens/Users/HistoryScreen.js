@@ -1,38 +1,74 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import PropTypes from 'prop-types';  
+import { FontAwesome5 } from '@expo/vector-icons';
 
-const history = [
-  { id: '1', date: '2023-05-15', action: 'Reservation', details: 'Table for 4 at 7:00 PM' },
-  { id: '2', date: '2023-05-10', action: 'Order', details: 'Takeout order #1234' },
-  { id: '3', date: '2023-05-05', action: 'Event', details: 'Attended Wine Tasting Evening' },
+
+import RestaurantImage from '../../assets/images/restaurant-image.jpg';
+import ChefJohnImage from '../../assets/images/chef-1.jpg';
+import ChefJaneImage from '../../assets/images/chef-2.jpg';
+import ChefEmilyImage from '../../assets/images/chef-3.jpg';
+
+const awards = [
+  { id: '1', icon: 'award', title: 'Best Fine Dining Experience - 2020' },
+  { id: '2', icon: 'star', title: 'Top 10 Restaurants in the Country - 2022' },
+  { id: '3', icon: 'medal', title: 'Culinary Excellence Award - 2021' },
 ];
 
-const HistoryItem = ({ date, action, details }) => (
-  <View style={styles.historyItem}>
-    <Text style={styles.historyDate}>{date}</Text>
-    <Text style={styles.historyAction}>{action}</Text>
-    <Text style={styles.historyDetails}>{details}</Text>
-  </View>
-);
+const teamMembers = [
+  { id: '1', name: 'Chef John Doe', role: 'Head Chef', experience: '20 years', image: ChefJohnImage },
+  { id: '2', name: 'Jane Smith', role: 'Sous Chef', experience: '15 years', image: ChefJaneImage },
+  { id: '3', name: 'Emily Brown', role: 'Pastry Chef', experience: '10 years', image: ChefEmilyImage },
+];
 
-
-HistoryItem.propTypes = {
-  date: PropTypes.string.isRequired,     
-  action: PropTypes.string.isRequired,   
-  details: PropTypes.string.isRequired,  
-};
-
-export default function HistoryScreen() {
+export default function RestaurantHistoryScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Your History</Text>
-      <FlatList
-        data={history}
-        renderItem={({ item }) => <HistoryItem {...item} />}
-        keyExtractor={item => item.id}
-      />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Text style={styles.title}>About Our Restaurant</Text>
+
+        {/* Restaurant Image */}
+        <Image source={RestaurantImage} style={styles.restaurantImage} />
+
+        {/* Restaurant History */}
+        <Text style={styles.sectionTitle}>Our Story</Text>
+        <Text style={styles.paragraph}>
+          Established in 1998, our restaurant has been a cornerstone of culinary excellence in the city. Known for our
+          farm-to-table philosophy, we source the freshest ingredients to craft unforgettable dining experiences.
+        </Text>
+
+        {/* Awards Section */}
+        <Text style={styles.sectionTitle}>Awards and Recognition</Text>
+        <FlatList
+          data={awards}
+          keyExtractor={(item) => item.id}
+          nestedScrollEnabled={true}
+          renderItem={({ item }) => (
+            <View style={styles.awardItem}>
+              <FontAwesome5 name={item.icon} size={24} color="#FF4B3A" style={styles.awardIcon} />
+              <Text style={styles.awardText}>{item.title}</Text>
+            </View>
+          )}
+        />
+
+        {/* Team Section */}
+        <Text style={styles.sectionTitle}>Meet Our Team</Text>
+        <FlatList
+          data={teamMembers}
+          keyExtractor={(item) => item.id}
+          nestedScrollEnabled={true}
+          renderItem={({ item }) => (
+            <View style={styles.teamMember}>
+              <Image source={item.image} style={styles.teamImage} />
+              <View style={styles.teamInfo}>
+                <Text style={styles.teamName}>{item.name}</Text>
+                <Text style={styles.teamRole}>{item.role}</Text>
+                <Text style={styles.teamExperience}>Experience: {item.experience}</Text>
+              </View>
+            </View>
+          )}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -44,29 +80,71 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
     color: '#333',
+    textAlign: 'center',
   },
-  historyItem: {
-    backgroundColor: '#fff',
+  restaurantImage: {
+    width: '100%',
+    height: 200,
     borderRadius: 10,
-    padding: 15,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+   
+  },
+  paragraph: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#555',
+    textAlign: 'justify',
+  },
+  awardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
-  historyDate: {
+  awardIcon: {
+    marginRight: 10,
+  },
+  awardText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  teamMember: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+  },
+  teamImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 10,
+  },
+  teamInfo: {
+    flex: 1,
+  },
+  teamName: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 5,
+    color: '#333',
   },
-  historyAction: {
+  teamRole: {
     fontSize: 14,
-    color: '#FF4B3A',
-    marginBottom: 5,
+    color: '#555',
   },
-  historyDetails: {
+  teamExperience: {
     fontSize: 14,
-    color: '#666',
+    color: '#777',
   },
 });

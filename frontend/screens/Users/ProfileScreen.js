@@ -13,6 +13,7 @@ import {
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
+import config from '../../config';
 
 const ProfileOption = ({ icon, title, onPress }) => (
   <TouchableOpacity style={styles.option} onPress={onPress}>
@@ -36,7 +37,7 @@ export default function ProfileScreen({ navigation }) {
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post('http://192.168.8.119:5000/api/register', {
+      const response = await axios.post(`${config.API_URL}/api/register`, {
         username,
         email,
         password,
@@ -51,7 +52,7 @@ export default function ProfileScreen({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://192.168.8.119:5000/api/login', {
+      const response = await axios.post(`${config.API_URL}/api/login`, {
         email,
         password,
       });

@@ -41,7 +41,7 @@ function MainTabs() {
               iconName = focused ? 'person' : 'person-outline';
               break;
             default:
-              iconName = 'help-circle-outline'; // Default icon
+              iconName = 'help-circle-outline'; 
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -62,7 +62,7 @@ function MainTabs() {
 }
 
 
-export default function AdminPage() {
+export default function ManagerPage() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
