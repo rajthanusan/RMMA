@@ -247,7 +247,7 @@ export default function HomeScreen({ navigation }) {
         {/* Header Section */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hello, Admin!</Text>
+            <Text style={styles.greeting}>Hello, Manager!</Text>
             <Text style={styles.subGreeting}>Manage your food items</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
@@ -390,6 +390,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 10,
     alignItems: 'center',
+    margin: 10,
   },
   imagePickerText: {
     color: '#FFF',
@@ -442,7 +443,6 @@ const styles = StyleSheet.create({
   },
   modalCloseButton: {
     marginTop: 15,
-    backgroundColor: '#FF4B3A',
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: 'center',
@@ -458,6 +458,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 20,
     alignItems: 'center',
+    width: '90%',
+    alignSelf: 'center',
   },
   addButtonText: {
     color: '#FFF',

@@ -1,24 +1,57 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios'; 
+
+import config from '../../config'; 
 
 export default function FeedbackScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    if (name && email && feedback) {
-      Alert.alert(
-        'Thank You!',
-        'Your feedback has been submitted successfully.',
-        [{ text: 'OK' }]
-      );
-      setName('');
-      setEmail('');
-      setFeedback('');
-    } else {
+  const validateEmail = (email) => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailPattern.test(email);
+  };
+
+  const handleSubmit = async () => {
+    if (!name || !email || !feedback) {
       Alert.alert('Error', 'Please fill in all fields', [{ text: 'OK' }]);
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Please enter a valid email address', [{ text: 'OK' }]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post(`${config.API_URL}/api/feedback`, {
+        name,
+        email,
+        feedback
+      });
+
+      if (response.status === 200) {
+        Alert.alert(
+          'Thank You!',
+          'Your feedback has been submitted successfully.',
+          [{ text: 'OK' }]
+        );
+        setName('');
+        setEmail('');
+        setFeedback('');
+      } else {
+        Alert.alert('Error', 'Something went wrong. Please try again.', [{ text: 'OK' }]);
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Network error. Please try again later.', [{ text: 'OK' }]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,8 +79,10 @@ export default function FeedbackScreen() {
         multiline
         numberOfLines={4}
       />
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Submit Feedback</Text>
+      <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
+        <Text style={styles.buttonText}>
+          {loading ? 'Submitting...' : 'Submit Feedback'}
+        </Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -89,4 +124,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-

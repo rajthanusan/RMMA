@@ -28,7 +28,7 @@ function MainTabs() {
             case 'Events':
               iconName = focused ? 'calendar' : 'calendar-outline';
               break;
-            case 'Book Table':
+            case 'Table':
               iconName = focused ? 'restaurant' : 'restaurant-outline';
               break;
             case 'History':
@@ -53,7 +53,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Events" component={EventsScreen} />
-      <Tab.Screen name="Book Table" component={BookTableScreen} />
+      <Tab.Screen name="Table" component={BookTableScreen} />
       <Tab.Screen name="History" component={HistoryScreen} />
       <Tab.Screen name="Feedback" component={FeedbackScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />

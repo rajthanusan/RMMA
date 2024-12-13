@@ -34,42 +34,106 @@ export default function ProfileScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const handleRegister = async () => {
+    
+    if (!username.trim()) {
+      setUsernameError('Username is required');
+      return;
+    } else {
+      setUsernameError('');
+    }
+  
+    
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      return;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {  
+      setEmailError('Please enter a valid email');
+      return;
+    } else {
+      setEmailError('');
+    }
+  
+    
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      return;
+    } else {
+      setPasswordError('');
+    }
+  
     try {
       const response = await axios.post(`${config.API_URL}/api/register`, {
         username,
         email,
         password,
-        role: 'user', 
+        role: 'user',
       });
       Alert.alert('Success', response.data.message);
-      setIsRegister(false); 
+      setIsRegister(false);
     } catch (error) {
       Alert.alert('Error', error.response?.data?.error || 'Registration failed');
     }
   };
+  
 
   const handleLogin = async () => {
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      return;
+    } else {
+      setEmailError('');
+    }
+
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      return;
+    } else {
+      setPasswordError('');
+    }
+
     try {
       const response = await axios.post(`${config.API_URL}/api/login`, {
         email,
         password,
       });
 
-      const { message, role } = response.data; 
+      const { message, role } = response.data;
 
       Alert.alert('Success', message);
-      setIsLoggedIn(true); 
+      setIsLoggedIn(true);
+      setUserRole(role);
 
-      if (role === 'admin') {
-        navigation.navigate('AdminPage'); 
+      if (role === 'manager') {
+        navigation.navigate('ManagerPage');
       } else {
-        navigation.navigate('User'); 
+        navigation.navigate('User');
       }
     } catch (error) {
       Alert.alert('Error', error.response?.data?.error || 'Login failed');
     }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUserRole('');
+    navigation.navigate('User');
+  };
+
+  const handleInputChange = (field, value) => {
+    if (field === 'username') setUsername(value);
+    if (field === 'email') setEmail(value);
+    if (field === 'password') setPassword(value);
+
+    
+    if (field === 'username' && usernameError) setUsernameError('');
+    if (field === 'email' && emailError) setEmailError('');
+    if (field === 'password' && passwordError) setPasswordError('');
   };
 
   if (isLoggedIn) {
@@ -89,7 +153,7 @@ export default function ProfileScreen({ navigation }) {
             <ProfileOption icon="help-circle-outline" title="Help & Support" onPress={() => {}} />
             <ProfileOption icon="settings-outline" title="Settings" onPress={() => {}} />
           </View>
-          <TouchableOpacity style={styles.logoutButton} onPress={() => setIsLoggedIn(false)}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutText}>Log Out</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -107,26 +171,31 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.formContainer}>
           {isRegister && (
             <TextInput
-              style={styles.input}
+              style={[styles.input, usernameError ? styles.inputError : null]}
               placeholder="Username"
               value={username}
-              onChangeText={setUsername}
+              onChangeText={(value) => handleInputChange('username', value)}
             />
           )}
+          {usernameError && <Text style={styles.errorText}>{usernameError}</Text>}
+
           <TextInput
-            style={styles.input}
+            style={[styles.input, emailError ? styles.inputError : null]}
             placeholder="Email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(value) => handleInputChange('email', value)}
             keyboardType="email-address"
           />
+          {emailError && <Text style={styles.errorText}>{emailError}</Text>}
+
           <TextInput
-            style={styles.input}
+            style={[styles.input, passwordError ? styles.inputError : null]}
             placeholder="Password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(value) => handleInputChange('password', value)}
             secureTextEntry
           />
+          {passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
 
           <TouchableOpacity
             style={styles.button}
@@ -153,7 +222,6 @@ export default function ProfileScreen({ navigation }) {
 ProfileScreen.propTypes = {
   navigation: PropTypes.object.isRequired,
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -205,6 +273,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#F7F7F7',
   },
+  inputError: {
+    borderColor: 'red',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginBottom: 10,
+  },
   button: {
     backgroundColor: '#FF4B3A',
     borderRadius: 8,
@@ -220,17 +296,16 @@ const styles = StyleSheet.create({
     marginTop: 15,
     textAlign: 'center',
     color: '#FF4B3A',
-    fontSize: 16,
   },
   optionsContainer: {
-    marginTop: 20,
+    padding: 15,
   },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: '#ddd',
   },
   optionTitle: {
     marginLeft: 15,
@@ -240,8 +315,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF4B3A',
     borderRadius: 8,
     padding: 15,
-    margin: 20,
     alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
   },
   logoutText: {
     color: '#fff',

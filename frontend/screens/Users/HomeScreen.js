@@ -17,7 +17,6 @@ import config from '../../config';
 
 const { width } = Dimensions.get('window');
 
-
 const CategoryItem = ({ icon, name, onPress, isSelected }) => (
   <TouchableOpacity 
     style={[styles.categoryItem, isSelected && styles.selectedCategory]} 
@@ -29,7 +28,6 @@ const CategoryItem = ({ icon, name, onPress, isSelected }) => (
     <Text style={[styles.categoryName, isSelected && styles.selectedCategoryText]}>{name}</Text>
   </TouchableOpacity>
 );
-
 
 const RestaurantCard = ({ image, name, rating, category }) => (
   <TouchableOpacity style={styles.restaurantCard}>
@@ -52,7 +50,6 @@ export default function HomeScreen({ route, navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  
   const categories = [
     { icon: "restaurant", name: "All" },
     { icon: "pizza", name: "Appetizers" },  
@@ -137,7 +134,7 @@ export default function HomeScreen({ route, navigation }) {
         style={styles.categoriesContainer}
       />
 
-      <Text style={styles.sectionTitle}>Popular Restaurants</Text>
+      <Text style={styles.sectionTitle}>Popular Foods</Text>
     </>
   ), [username, navigation, searchQuery, categories, renderCategoryItem]);
 
@@ -151,6 +148,7 @@ export default function HomeScreen({ route, navigation }) {
         ListHeaderComponent={ListHeaderComponent()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.restaurantsContainer}
+        ListEmptyComponent={<Text style={styles.noFoodMessage}>Sorry, no foods available right now.</Text>}
       />
     </SafeAreaView>
   );
@@ -165,7 +163,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingTop: 20,
     paddingBottom: 10,
   },
@@ -192,7 +190,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 10,
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     marginTop: 20,
     paddingHorizontal: 15,
     paddingVertical: 10,
@@ -210,13 +208,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     marginTop: 30,
     marginBottom: 15,
     color: '#333',
   },
   categoriesContainer: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 0,
   },
   categoryItem: {
     alignItems: 'center',
@@ -292,6 +290,11 @@ const styles = StyleSheet.create({
   },
   restaurantCuisine: {
     color: '#eee',
+  },
+  noFoodMessage: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 

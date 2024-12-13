@@ -10,6 +10,7 @@ const authRoutes = require('./routes/authRoutes');
 const foodItemRoutes = require('./routes/foodItemRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const reservationRoutes = require('./routes/reservation');
+const feedbackRoutes = require('./routes/feedbackRoutes');
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use('/api', authRoutes);
 app.use('/api', foodItemRoutes);
 app.use('/api', eventRoutes);
 app.use('/api', reservationRoutes);
+app.use('/api', feedbackRoutes);
 
 
 app.listen(PORT, () => {

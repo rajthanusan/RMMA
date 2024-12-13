@@ -2,17 +2,27 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 import HomeScreen from './HomeScreen';
 import EventsScreen from './EventsScreen';
 import BookTableScreen from './BookTableScreen';
 import HistoryScreen from './HistoryScreen';
-import ProfileScreen from './ProfileScreen';
 import FeedbackScreen from './FeedbackScreen';
-
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+
+function LogoutScreen() {
+  const navigation = useNavigation();
+
+  React.useEffect(() => {
+    
+    navigation.navigate('User');
+  }, [navigation]);
+
+  return null; 
+}
 
 function MainTabs() {
   return (
@@ -28,17 +38,15 @@ function MainTabs() {
             case 'Events':
               iconName = focused ? 'calendar' : 'calendar-outline';
               break;
-            case 'Book Table':
+            case 'Reservation':
               iconName = focused ? 'restaurant' : 'restaurant-outline';
               break;
-            case 'History':
-              iconName = focused ? 'time' : 'time-outline';
-              break;
+           
             case 'Feedback':
               iconName = focused ? 'chatbubble' : 'chatbubble-outline';
               break;
-            case 'Profile':
-              iconName = focused ? 'person' : 'person-outline';
+            case 'Logout':
+              iconName = focused ? 'log-out' : 'log-out-outline';
               break;
             default:
               iconName = 'help-circle-outline'; 
@@ -53,14 +61,22 @@ function MainTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Events" component={EventsScreen} />
-      <Tab.Screen name="Book Table" component={BookTableScreen} />
-      <Tab.Screen name="History" component={HistoryScreen} />
+      <Tab.Screen name="Reservation" component={BookTableScreen} />
+    
       <Tab.Screen name="Feedback" component={FeedbackScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen 
+        name="Logout" 
+        component={LogoutScreen}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('User');
+          },
+        })}
+      />
     </Tab.Navigator>
   );
 }
-
 
 export default function ManagerPage() {
   return (
@@ -69,3 +85,4 @@ export default function ManagerPage() {
     </Stack.Navigator>
   );
 }
+
