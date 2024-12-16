@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import HomeScreen from './HomeScreen';
 import EventsScreen from './EventsScreen';
 import BookTableScreen from './BookTableScreen';
-import HistoryScreen from './HistoryScreen';
+import OperatorAccount from './RegisterAccountScreen';
 import FeedbackScreen from './FeedbackScreen';
 
 const Stack = createStackNavigator();
@@ -41,6 +41,9 @@ function MainTabs() {
             case 'Reservation':
               iconName = focused ? 'restaurant' : 'restaurant-outline';
               break;
+              case 'Operator':
+                iconName = focused ? 'person' : 'person-outline';
+                break;
            
             case 'Feedback':
               iconName = focused ? 'chatbubble' : 'chatbubble-outline';
@@ -62,8 +65,8 @@ function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Events" component={EventsScreen} />
       <Tab.Screen name="Reservation" component={BookTableScreen} />
-    
       <Tab.Screen name="Feedback" component={FeedbackScreen} />
+      <Tab.Screen name="Operator" component={OperatorAccount} />
       <Tab.Screen 
         name="Logout" 
         component={LogoutScreen}
