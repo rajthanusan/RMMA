@@ -2,19 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Text, StyleSheet, TouchableOpacity, ScrollView, Alert, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import config from '../../config';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function AdminReservationScreen() {
   const [reservations, setReservations] = useState([]);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [date, setDate] = useState(new Date());
-  
+
   useEffect(() => {
-    
     axios.get(`${config.API_URL}/api/reserve`)
       .then((response) => {
-        
         const sortedReservations = response.data.sort((a, b) => new Date(a.date) - new Date(b.date));
         setReservations(sortedReservations);
       })
@@ -24,7 +20,6 @@ export default function AdminReservationScreen() {
   }, []);
 
   const handleDelete = (id) => {
-    
     axios.delete(`${config.API_URL}/api/reserve/${id}`)
       .then(() => {
         setReservations(reservations.filter(reservation => reservation._id !== id));
@@ -36,28 +31,75 @@ export default function AdminReservationScreen() {
       });
   };
 
+  const handleApprove = (id) => {
+    axios.put(`${config.API_URL}/api/reserve/${id}/approve`)
+      .then((response) => {
+        const updatedReservation = response.data.updatedReservation;
+        setReservations(reservations.map(reservation =>
+          reservation._id === id ? { ...reservation, status: 'Approved' } : reservation
+        ));
+        Alert.alert("Reservation Approved", `The reservation has been approved. An email has been sent to ${updatedReservation.email}.`);
+      })
+      .catch((error) => {
+        console.error("Error approving reservation:", error);
+        Alert.alert("Error", "Failed to approve the reservation.");
+      });
+  };
+
+  const handleReject = (id) => {
+    axios.put(`${config.API_URL}/api/reserve/${id}/reject`)
+      .then((response) => {
+        const updatedReservation = response.data.updatedReservation;
+        setReservations(reservations.map(reservation =>
+          reservation._id === id ? { ...reservation, status: 'Rejected' } : reservation
+        ));
+        Alert.alert("Reservation Rejected", `The reservation has been rejected. An email has been sent to ${updatedReservation.email}.`);
+      })
+      .catch((error) => {
+        console.error("Error rejecting reservation:", error);
+        Alert.alert("Error", "Failed to reject the reservation.");
+      });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <Text style={styles.title}>Reservations</Text>
-        
+
         {reservations.length === 0 ? (
           <Text style={styles.noDataText}>No reservations available.</Text>
         ) : (
           reservations.map((reservation) => (
             <View key={reservation._id} style={styles.reservationCard}>
-              <Text style={styles.reservationTitle}>{reservation.name}</Text>
+              <Text style={styles.reservationTitle}>{reservation.email}</Text>
               <Text style={styles.reservationDetails}>Phone: {reservation.phone}</Text>
               <Text style={styles.reservationDetails}>Guests: {reservation.guests}</Text>
               <Text style={styles.reservationDetails}>Date: {reservation.date}</Text>
               <Text style={styles.reservationDetails}>Time: {reservation.time}</Text>
+              <Text style={styles.reservationDetails}>Status: {reservation.status || 'Pending'}</Text>
 
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDelete(reservation._id)}
-              >
-                <Text style={styles.deleteButtonText}>Delete Reservation</Text>
-              </TouchableOpacity>
+              <View style={styles.buttonsContainer}>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => handleApprove(reservation._id)}
+                >
+                  <Icon name="check-circle" size={30} color="#4CAF50" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => handleReject(reservation._id)}
+                >
+                  <Icon name="cancel" size={30} color="#FF4B3A" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => handleDelete(reservation._id)}
+                >
+                  <Icon name="delete" size={30} color="#FF9800" />
+                </TouchableOpacity>
+              </View>
             </View>
           ))
         )}
@@ -107,16 +149,18 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: 5,
   },
-  deleteButton: {
-    backgroundColor: '#FF4B3A',
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  iconButton: {
+    backgroundColor: '#fff',
     padding: 10,
     borderRadius: 10,
-    marginTop: 10,
+    width: '30%',
     alignItems: 'center',
-  },
-  deleteButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    justifyContent: 'center',
+    elevation: 2,
   },
 });

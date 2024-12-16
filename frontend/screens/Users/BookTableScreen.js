@@ -2,37 +2,34 @@ import React, { useState } from 'react';
 import { Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import config from '../../config'; 
+import config from '../../config';
 
 export default function BookTableScreen() {
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [guests, setGuests] = useState('');
   const [date, setDate] = useState(new Date());
-  const [time, setTime] = useState(new Date()); 
+  const [time, setTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false); 
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleReservation = () => {
-    if (name && phone && guests && date && time) {
-      
+    if (email && phone && guests && date && time) {
       const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
 
-      
       const hours = time.getHours();
       const minutes = time.getMinutes();
       const ampm = hours >= 12 ? 'PM' : 'AM';
       const formattedTime = `${(hours % 12 || 12).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
 
       const reservationData = {
-        name,
+        email,
         phone,
         guests,
-        date: formattedDate, 
-        time: formattedTime, 
+        date: formattedDate,
+        time: formattedTime,
       };
 
-      
       fetch(`${config.API_URL}/api/reserve`, {
         method: 'POST',
         headers: {
@@ -42,19 +39,17 @@ export default function BookTableScreen() {
       })
         .then((response) => response.json())
         .then((data) => {
-          
           Alert.alert(
-            'Reservation Confirmed',
-            `Thank you, ${name}! Your reservation for ${guests} guests on ${formattedDate} at ${formattedTime} has been confirmed.`,
+            'Reservation Request Sent',
+            `Thank you, ${email}! Your reservation request for ${guests} guests on ${formattedDate} at ${formattedTime} has been sent. You will receive a confirmation message shortly.`,
             [{ text: 'OK' }]
           );
-
           
-          setName('');
+          setEmail('');
           setPhone('');
           setGuests('');
           setDate(new Date());
-          setTime(new Date()); 
+          setTime(new Date());
         })
         .catch((error) => {
           console.error('Error:', error);
@@ -71,9 +66,9 @@ export default function BookTableScreen() {
         <Text style={styles.title}>Book a Table</Text>
         <TextInput
           style={styles.input}
-          placeholder="Your Name"
-          value={name}
-          onChangeText={setName}
+          placeholder="Your Email"
+          value={email}
+          onChangeText={setEmail}
         />
         <TextInput
           style={styles.input}
@@ -108,7 +103,7 @@ export default function BookTableScreen() {
             }}
           />
         )}
-        
+
         <TouchableOpacity
           style={styles.timeButton}
           onPress={() => setShowTimePicker(true)}

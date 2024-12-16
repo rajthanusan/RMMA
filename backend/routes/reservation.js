@@ -12,7 +12,11 @@ router.get('/reserve', reservationController.getReservations);
 router.get('/reserve/:id', reservationController.getReservationById);
 
 
+router.put('/reserve/:id/approve', reservationController.approveReservation);
 
+
+
+router.put('/reserve/:id/reject', reservationController.rejectReservation);
 
 
 router.delete('/reserve/:id', reservationController.deleteReservation);
