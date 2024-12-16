@@ -9,6 +9,7 @@ const foodItemSchema = new mongoose.Schema({
     enum: ['Appetizers', 'Main Courses', 'Desserts', 'Drinks', 'Snacks'],
   },
   image: { type: String, required: true },
+  isActive: { type: Boolean, default: true },
 });
 
 const FoodItem = mongoose.model('FoodItem', foodItemSchema);

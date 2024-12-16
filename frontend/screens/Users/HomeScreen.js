@@ -63,8 +63,9 @@ export default function HomeScreen({ route, navigation }) {
     fetch(`${config.API_URL}/api/food-items`)
       .then((response) => response.json())
       .then((data) => {
-        setFoodItems(data);
-        setFilteredFoodItems(data);
+        const activeItems = data.filter((item) => item.isActive === true);
+        setFoodItems(activeItems);
+        setFilteredFoodItems(activeItems);
       })
       .catch((error) => console.error('Error fetching food items:', error));
   }, []);

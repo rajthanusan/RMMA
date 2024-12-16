@@ -111,6 +111,8 @@ export default function ProfileScreen({ navigation }) {
 
       if (role === 'manager') {
         navigation.navigate('ManagerPage');
+      } else if (role === 'operator') {
+        navigation.navigate('OperatorPage');
       } else {
         navigation.navigate('User');
       }

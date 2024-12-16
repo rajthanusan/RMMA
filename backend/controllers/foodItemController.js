@@ -97,3 +97,24 @@ exports.deleteFoodItem = async (req, res) => {
   }
 };
 
+exports.toggleFoodItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const foodItem = await FoodItem.findById(id);
+
+    if (!foodItem) {
+      return res.status(404).json({ message: 'Food item not found' });
+    }
+
+    foodItem.isActive = !foodItem.isActive;
+    await foodItem.save();
+
+    res.status(200).json({
+      ...foodItem.toObject(),
+      image: `${req.protocol}://${req.get('host')}/${foodItem.image}`
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error toggling food item', error: error.message });
+  }
+};
+
