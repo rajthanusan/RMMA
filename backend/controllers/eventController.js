@@ -98,3 +98,23 @@ exports.deleteEvent = async (req, res) => {
   }
 };
 
+exports.toggleEventStatus = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const event = await Event.findById(id);
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    event.active = !event.active;
+    await event.save();
+
+    res.status(200).json({
+      ...event.toObject(),
+      image: `${req.protocol}://${req.get('host')}/${event.image}`,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error toggling event status' });
+  }
+};

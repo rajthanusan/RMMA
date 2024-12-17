@@ -3,7 +3,7 @@ import { Text, StyleSheet, TouchableOpacity, FlatList, Alert, View, TextInput } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import config from '../../config';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons} from '@expo/vector-icons';
 
 export default function AdminFeedbackScreen() {
   const [feedbackList, setFeedbackList] = useState([]);
@@ -27,16 +27,7 @@ export default function AdminFeedbackScreen() {
     fetchFeedback();
   }, []);
 
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${config.API_URL}/api/feedback/${id}`);
-      setFeedbackList(feedbackList.filter((item) => item._id !== id));
-      Alert.alert('Success', 'Feedback has been deleted successfully.');
-    } catch (error) {
-      console.error('Error deleting feedback:', error);
-      Alert.alert('Error', 'Unable to delete feedback. Please try again later.');
-    }
-  };
+
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -93,9 +84,6 @@ export default function AdminFeedbackScreen() {
           <Ionicons name="send" size={30} color="#4CAF50" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.iconButton} onPress={() => handleDelete(item._id)}>
-          <MaterialIcons name="delete" size={30} color="#FF4B3A" />
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -110,10 +98,11 @@ export default function AdminFeedbackScreen() {
         <Text>No feedback available.</Text>
       ) : (
         <FlatList
-          data={feedbackList}
-          keyExtractor={(item) => item._id}
-          renderItem={renderFeedbackItem}
-        />
+        data={feedbackList}
+        keyExtractor={(item) => item._id}
+        renderItem={renderFeedbackItem}
+        showsVerticalScrollIndicator={false}
+      />
       )}
     </SafeAreaView>
   );
@@ -163,14 +152,14 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end', 
     marginTop: 15,
   },
   iconButton: {
     backgroundColor: '#F1F1F1',
     padding: 10,
     borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'left',
+    justifyContent: 'left',
   },
 });

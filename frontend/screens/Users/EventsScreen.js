@@ -31,14 +31,20 @@ export default function EventsScreen() {
       try {
         const response = await fetch(`${config.API_URL}/api/events`);
         const data = await response.json();
-        setEvents(data);
+        
+
+        const activeEvents = data.filter(event => event.active);
+        
+        setEvents(activeEvents);
       } catch (error) {
         console.error("Error fetching events:", error);
       }
     };
-
+  
     fetchEvents();
   }, []);
+  
+
 
   return (
     <SafeAreaView style={styles.container}>

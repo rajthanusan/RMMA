@@ -63,7 +63,10 @@ export default function AdminReservationScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+       <ScrollView
+        showsVerticalScrollIndicator={false}  
+        showsHorizontalScrollIndicator={false} 
+      >
         <Text style={styles.title}>Reservations</Text>
 
         {reservations.length === 0 ? (

@@ -19,17 +19,7 @@ export default function AdminReservationScreen() {
       });
   }, []);
 
-  const handleDelete = (id) => {
-    axios.delete(`${config.API_URL}/api/reserve/${id}`)
-      .then(() => {
-        setReservations(reservations.filter(reservation => reservation._id !== id));
-        Alert.alert("Reservation Deleted", "The reservation has been successfully deleted.");
-      })
-      .catch((error) => {
-        console.error("Error deleting reservation:", error);
-        Alert.alert("Error", "Failed to delete the reservation.");
-      });
-  };
+ 
 
   const handleApprove = (id) => {
     axios.put(`${config.API_URL}/api/reserve/${id}/approve`)
@@ -63,7 +53,11 @@ export default function AdminReservationScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}  
+        showsHorizontalScrollIndicator={false} 
+      >
         <Text style={styles.title}>Reservations</Text>
 
         {reservations.length === 0 ? (
@@ -93,12 +87,8 @@ export default function AdminReservationScreen() {
                   <Icon name="cancel" size={30} color="#FF4B3A" />
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => handleDelete(reservation._id)}
-                >
-                  <Icon name="delete" size={30} color="#FF9800" />
-                </TouchableOpacity>
+               
+               
               </View>
             </View>
           ))

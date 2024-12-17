@@ -9,25 +9,31 @@ import {
   TextInput,
   FlatList,
   StatusBar,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import PropTypes from 'prop-types';  
+
 import config from '../../config';
 
-const { width } = Dimensions.get('window');
-
 const CategoryItem = ({ icon, name, onPress, isSelected }) => (
-  <TouchableOpacity 
-    style={[styles.categoryItem, isSelected && styles.selectedCategory]} 
+  <TouchableOpacity
+    style={[styles.categoryItem, isSelected && styles.selectedCategory]}
     onPress={onPress}
   >
     <View style={[styles.categoryIcon, isSelected && styles.selectedCategoryIcon]}>
-      <Ionicons name={icon} size={24} color={isSelected ? "#FFFFFF" : "#FF4B3A"} />
+      <Ionicons name={icon} size={24} color={isSelected ? '#FFFFFF' : '#FF4B3A'} />
     </View>
     <Text style={[styles.categoryName, isSelected && styles.selectedCategoryText]}>{name}</Text>
   </TouchableOpacity>
 );
+
+CategoryItem.propTypes = { 
+  icon: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  onPress: PropTypes.func.isRequired,
+  isSelected: PropTypes.bool.isRequired,
+};
 
 const RestaurantCard = ({ image, name, rating, category }) => (
   <TouchableOpacity style={styles.restaurantCard}>
@@ -36,27 +42,34 @@ const RestaurantCard = ({ image, name, rating, category }) => (
       <Text style={styles.restaurantName}>{name}</Text>
       <View style={styles.restaurantMeta}>
         <Ionicons name="star" size={16} color="#FFD700" />
-        <Text style={styles.restaurantRating}>{rating}</Text>
+        <Text style={styles.restaurantRating}>{Number(rating).toFixed(1)}</Text>
         <Text style={styles.restaurantCuisine}>{category}</Text>
       </View>
     </View>
   </TouchableOpacity>
 );
 
-export default function HomeScreen({ route, navigation }) {
-  const username = route.params?.username || 'Food Lover';
+RestaurantCard.propTypes = {
+  image: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  rating: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  category: PropTypes.string.isRequired,
+};
+
+const HomeScreen = ({ route, navigation }) => {
+  const username = route?.params?.username || 'User';
   const [foodItems, setFoodItems] = useState([]);
   const [filteredFoodItems, setFilteredFoodItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const categories = [
-    { icon: "restaurant", name: "All" },
-    { icon: "pizza", name: "Appetizers" },  
-    { icon: "restaurant", name: "Main Courses" },  
-    { icon: "ice-cream", name: "Desserts" },  
-    { icon: "beer", name: "Drinks" },  
-    { icon: "fast-food", name: "Snacks" },  
+    { icon: 'grid-outline', name: 'All' },
+    { icon: 'pizza-outline', name: 'Appetizers' },
+    { icon: 'restaurant-outline', name: 'Main Courses' },
+    { icon: 'ice-cream-outline', name: 'Desserts' }, 
+    { icon: 'beer-outline', name: 'Drinks' },
+    { icon: 'fast-food-outline', name: 'Snacks' },
   ];
 
   useEffect(() => {
@@ -106,7 +119,7 @@ export default function HomeScreen({ route, navigation }) {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Hello, {username}!</Text>
-          <Text style={styles.subGreeting}>Discover the best foods</Text>
+          <Text style={styles.subGreeting}>Taste Perfection, Every Time</Text>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
           <View style={styles.profileButton}>
@@ -119,7 +132,7 @@ export default function HomeScreen({ route, navigation }) {
         <Ionicons name="search" size={20} color="#999" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search for restaurants or foods"
+          placeholder="Find your favorite foods here"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -153,8 +166,12 @@ export default function HomeScreen({ route, navigation }) {
       />
     </SafeAreaView>
   );
-}
+};
 
+HomeScreen.propTypes = {
+  route: PropTypes.object.isRequired,
+  navigation: PropTypes.object.isRequired,
+};
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -266,36 +283,38 @@ const styles = StyleSheet.create({
   },
   restaurantOverlay: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    bottom: 10,
+    left: 10,
+    right: 10,
+    padding: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 10,
   },
   restaurantName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 5,
   },
   restaurantMeta: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 5,
   },
   restaurantRating: {
     marginLeft: 5,
-    marginRight: 10,
     color: '#fff',
-    fontWeight: 'bold',
   },
   restaurantCuisine: {
-    color: '#eee',
+    marginLeft: 10,
+    color: '#fff',
   },
   noFoodMessage: {
-    fontSize: 18,
     textAlign: 'center',
-    marginTop: 20,
+    color: '#777',
+    fontSize: 16,
+    marginTop: 30,
   },
 });
+
+export default HomeScreen;
 

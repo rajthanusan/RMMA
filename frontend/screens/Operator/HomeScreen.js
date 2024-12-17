@@ -5,10 +5,8 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   Image,
-  Alert,
   Modal,
   FlatList,
   Switch,
@@ -16,17 +14,28 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
-import * as ImagePicker from 'expo-image-picker';
 import PropTypes from 'prop-types'; 
 import config from '../../config';
 
 
-const CategoryItem = ({ icon, name, onPress }) => (
-  <TouchableOpacity style={styles.categoryItem} onPress={() => onPress(name)}>
-    <View style={styles.categoryIcon}>
-      <Ionicons name={icon} size={24} color="#FF4B3A" />
+const CategoryItem = ({ icon, name, onPress, isSelected }) => (
+  <TouchableOpacity 
+    style={[
+      styles.categoryItem, 
+      isSelected && styles.selectedCategoryItem
+    ]} 
+    onPress={() => onPress(name)}
+  >
+    <View style={[
+      styles.categoryIcon,
+      isSelected && styles.selectedCategoryIcon
+    ]}>
+      <Ionicons name={icon} size={24} color={isSelected ? "#FFF" : "#FF4B3A"} />
     </View>
-    <Text style={styles.categoryName}>{name}</Text>
+    <Text style={[
+      styles.categoryName,
+      isSelected && styles.selectedCategoryName
+    ]}>{name}</Text>
   </TouchableOpacity>
 );
 
@@ -34,6 +43,7 @@ CategoryItem.propTypes = {
   icon: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   onPress: PropTypes.func.isRequired,
+  isSelected: PropTypes.bool.isRequired,
 };
 
 
@@ -44,7 +54,7 @@ const RestaurantCard = ({ image, name, rating, cuisine, onPress }) => (
       <Text style={styles.restaurantName}>{name}</Text>
       <View style={styles.restaurantMeta}>
         <Ionicons name="star" size={16} color="#FFD700" />
-        <Text style={styles.restaurantRating}>{rating}</Text>
+        <Text style={styles.restaurantRating}>{rating.toFixed(1)}</Text>
         <Text style={styles.restaurantCuisine}>{cuisine}</Text>
       </View>
     </View>
@@ -54,13 +64,13 @@ const RestaurantCard = ({ image, name, rating, cuisine, onPress }) => (
 RestaurantCard.propTypes = {
   image: PropTypes.node.isRequired, 
   name: PropTypes.string.isRequired,
-  rating: PropTypes.string.isRequired,
+  rating: PropTypes.number.isRequired,
   cuisine: PropTypes.string.isRequired,
   onPress: PropTypes.func.isRequired,
 };
 
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen() {
   const [foodItems, setFoodItems] = useState([]);
   const [filteredFoodItems, setFilteredFoodItems] = useState([]);
   const [newFoodItem, setNewFoodItem] = useState({
@@ -72,7 +82,7 @@ export default function HomeScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [categoryOptions] = useState(['Appetizers', 'Main Courses', 'Desserts', 'Drinks', 'Snacks']);
   const [editingItem, setEditingItem] = useState(null);
-
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   useEffect(() => {
     const loadFoodItems = async () => {
@@ -94,30 +104,6 @@ export default function HomeScreen({ navigation }) {
   };
 
 
- 
-
-  const pickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Permission required', 'We need access to your media library to upload images.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      if (editingItem) {
-        setEditingItem({ ...editingItem, image: result.assets[0].uri });
-      } else {
-        setNewFoodItem({ ...newFoodItem, image: result.assets[0].uri });
-      }
-    }
-  };
-
   const handleCategorySelect = (category) => {
     if (editingItem) {
       setEditingItem({ ...editingItem, category });
@@ -128,6 +114,7 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleCategoryFilter = (category) => {
+    setSelectedCategory(category);
     if (category === 'All') {
       setFilteredFoodItems(foodItems);
     } else {
@@ -135,8 +122,6 @@ export default function HomeScreen({ navigation }) {
       setFilteredFoodItems(filteredItems);
     }
   };
-
- 
 
   const toggleFoodItem = async (id) => {
     try {
@@ -156,31 +141,28 @@ export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Hello, Operator!</Text>
             <Text style={styles.subGreeting}>Manage your food items</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-            <Icon name="person" size={40} color="#FF4B3A" />
-          </TouchableOpacity>
+          <TouchableOpacity>
+  <Icon name="person" size={40} color="#FF4B3A" />
+</TouchableOpacity>
         </View>
 
-       
 
-        {/* Categories Section */}
         <Text style={styles.sectionTitle}>Categories</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-          <CategoryItem icon="list" name="All" onPress={handleCategoryFilter} />
-          <CategoryItem icon="restaurant" name="Appetizers" onPress={handleCategoryFilter} />
-          <CategoryItem icon="pizza" name="Main Courses" onPress={handleCategoryFilter} />
-          <CategoryItem icon="ice-cream" name="Desserts" onPress={handleCategoryFilter} />
-          <CategoryItem icon="beer" name="Drinks" onPress={handleCategoryFilter} />
-          <CategoryItem icon="fast-food" name="Snacks" onPress={handleCategoryFilter} />
+          <CategoryItem icon="list" name="All" onPress={handleCategoryFilter} isSelected={selectedCategory === 'All'} />
+          <CategoryItem icon="restaurant" name="Appetizers" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Appetizers'} />
+          <CategoryItem icon="pizza" name="Main Courses" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Main Courses'} />
+          <CategoryItem icon="ice-cream" name="Desserts" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Desserts'} />
+          <CategoryItem icon="beer" name="Drinks" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Drinks'} />
+          <CategoryItem icon="fast-food" name="Snacks" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Snacks'} />
         </ScrollView>
 
-        {/* Food Items Section */}
+
         <View style={styles.foodItemsContainer}>
           {filteredFoodItems.map((item) => (
             <View key={item._id} style={styles.foodItemCard}>
@@ -204,7 +186,6 @@ export default function HomeScreen({ navigation }) {
           ))}
         </View>
 
-        {/* Modal for category selection */}
         <Modal
           animationType="slide"
           transparent={true}
@@ -252,6 +233,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 40,
+  },
+  selectedCategoryIcon: {
+    backgroundColor: '#FF4B3A',
+    backgroundAttachment: 'fixed',
   },
   greeting: {
     fontSize: 24,
@@ -386,6 +371,16 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     fontSize: 12,
+  },
+  selectedCategoryItem: {
+    opacity: 1,
+  },
+  selectedCategoryIcon: {
+    backgroundColor: '#FF4B3A',
+  },
+  selectedCategoryName: {
+    color: '#FF4B3A',
+    fontWeight: 'bold',
   },
   foodItemsContainer: {
     marginVertical: 20,

@@ -112,7 +112,6 @@ export default function RegisterAccountScreen() {
         <Text style={styles.headerText}>Add Operator Account</Text>
       </View>
 
-      {/* Registration Form */}
       <TextInput
         style={styles.input}
         placeholder="Username"
@@ -173,7 +172,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+    textAlign: 'center',  
+    flex: 1,             
   },
+  
   input: {
     backgroundColor: '#fff',
     padding: 15,

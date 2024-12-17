@@ -110,10 +110,11 @@ export default function AdminFeedbackScreen() {
         <Text>No feedback available.</Text>
       ) : (
         <FlatList
-          data={feedbackList}
-          keyExtractor={(item) => item._id}
-          renderItem={renderFeedbackItem}
-        />
+        data={feedbackList}
+        keyExtractor={(item) => item._id}
+        renderItem={renderFeedbackItem}
+        showsVerticalScrollIndicator={false}
+      />
       )}
     </SafeAreaView>
   );

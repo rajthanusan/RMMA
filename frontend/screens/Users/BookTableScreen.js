@@ -37,12 +37,13 @@ export default function BookTableScreen() {
         },
         body: JSON.stringify(reservationData),
       })
-        .then((response) => response.json())
-        .then((data) => {
-          Alert.alert(
-            'Reservation Request Sent',
-            `Thank you, ${email}! Your reservation request for ${guests} guests on ${formattedDate} at ${formattedTime} has been sent. You will receive a confirmation message shortly.`,
-            [{ text: 'OK' }]
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data); 
+        Alert.alert(
+          'Reservation Request Sent',
+          `Thank you, ${email}! Your reservation request for ${guests} guests on ${formattedDate} at ${formattedTime} has been sent. You will receive a confirmation message shortly.`,
+          [{ text: 'OK' }]
           );
           
           setEmail('');

@@ -11,19 +11,20 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import config from '../../config';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const EventsScreen = () => {
   const [events, setEvents] = useState([]);
   const [eventname, setEventname] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [time, setTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [location, setLocation] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [isAddingEvent, setIsAddingEvent] = useState(false);
@@ -47,8 +48,8 @@ const EventsScreen = () => {
 
     const formData = new FormData();
     formData.append('eventname', eventname);
-    formData.append('date', date);
-    formData.append('time', time);
+    formData.append('date', date.toISOString().split('T')[0]);
+    formData.append('time', time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
     formData.append('location', location);
     formData.append('image', {
       uri: selectedImage.uri,
@@ -81,8 +82,8 @@ const EventsScreen = () => {
   const handleEditEvent = (event) => {
     setEditingEvent(event);
     setEventname(event.eventname);
-    setDate(event.date);
-    setTime(event.time);
+    setDate(new Date(event.date));
+    setTime(new Date(`2000-01-01T${event.time}`));
     setLocation(event.location);
     setSelectedImage({ uri: event.image });
     setIsAddingEvent(true);
@@ -114,8 +115,8 @@ const EventsScreen = () => {
 
   const clearForm = () => {
     setEventname('');
-    setDate('');
-    setTime('');
+    setDate(new Date());
+    setTime(new Date());
     setLocation('');
     setSelectedImage(null);
   };
@@ -140,8 +141,26 @@ const EventsScreen = () => {
     }
   };
 
-  const handleDismissKeyboard = () => {
-    Keyboard.dismiss();
+
+
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowDatePicker(Platform.OS === 'ios');
+    setDate(currentDate);
+  };
+
+  const onTimeChange = (event, selectedTime) => {
+    const currentTime = selectedTime || time;
+    setShowTimePicker(Platform.OS === 'ios');
+    setTime(currentTime);
+  };
+
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
+
+  const showTimepicker = () => {
+    setShowTimePicker(true);
   };
 
 
@@ -204,18 +223,32 @@ const EventsScreen = () => {
             onChangeText={setEventname}
             style={styles.input}
           />
-          <TextInput
-            placeholder="Date (e.g., YYYY-MM-DD)"
-            value={date}
-            onChangeText={setDate}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Time (e.g., 10:00 AM)"
-            value={time}
-            onChangeText={setTime}
-            style={styles.input}
-          />
+          <TouchableOpacity onPress={showDatepicker} style={styles.input}>
+            <Text>{date.toDateString()}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              testID="datePicker"
+              value={date}
+              mode="date"
+              is24Hour={true}
+              display="default"
+              onChange={onDateChange}
+            />
+          )}
+          <TouchableOpacity onPress={showTimepicker} style={styles.input}>
+            <Text>{time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</Text>
+          </TouchableOpacity>
+          {showTimePicker && (
+            <DateTimePicker
+              testID="timePicker"
+              value={time}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              onChange={onTimeChange}
+            />
+          )}
           <TextInput
             placeholder="Location"
             value={location}
@@ -241,20 +274,21 @@ const EventsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.keyboardAvoidingView}
-        >
-          <FlatList
-            data={events}
-            keyExtractor={(item) => item._id}
-            renderItem={renderEventItem}
-            ListHeaderComponent={renderHeader()}
-            contentContainerStyle={styles.eventList}
-          />
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <FlatList
+          data={events}
+          keyExtractor={(item) => item._id}
+          renderItem={renderEventItem}
+          ListHeaderComponent={renderHeader()}
+          contentContainerStyle={styles.eventList}
+          showsVerticalScrollIndicator={false}
+          ListFooterComponent={<View style={{ height: 100 }} />}
+        />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -341,6 +375,7 @@ const styles = StyleSheet.create({
   },
   eventList: {
     paddingBottom: 20,
+    flexGrow: 1,
   },
   eventCard: {
     flexDirection: 'row',
