@@ -361,12 +361,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#777',
   },
-  selectedCategoryIcon: {
-    backgroundColor: '#FF4B3A',
-  },
-  selectedCategoryItem: {
-    opacity: 1,
-  },
+
+
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -497,6 +493,8 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   selectedCategoryIcon: {
+    color: '#FFFFFF',
+    padding: 5, 
     backgroundColor: '#FF4B3A',
   },
   selectedCategoryName: {

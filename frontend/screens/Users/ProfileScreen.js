@@ -124,7 +124,10 @@ export default function ProfileScreen({ navigation }) {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUserRole('');
-    navigation.navigate('User');
+    setEmail('');  
+    setPassword(''); 
+    setUsername('');  
+    navigation.navigate('User'); 
   };
 
   const handleInputChange = (field, value) => {

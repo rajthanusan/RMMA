@@ -1,107 +1,78 @@
 const FoodItem = require('../models/FoodItem');
-const fs = require('fs');
-const path = require('path');
 
 exports.getFoodItems = async (req, res) => {
   try {
     const foodItems = await FoodItem.find();
-    const foodItemsWithFullImageUrl = foodItems.map(item => ({
-      ...item.toObject(),
-      image: `${req.protocol}://${req.get('host')}/${item.image}`
-    }));
-    res.status(200).json(foodItemsWithFullImageUrl);
+    res.json(foodItems);
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching food items' });
+    res.status(500).json({ message: 'Error fetching food items', error: error.message });
   }
 };
 
 exports.addFoodItem = async (req, res) => {
-  const { name, rating, category } = req.body;
-
-  if (!name || !rating || !category || !req.file) {
-    return res.status(400).json({ error: 'Missing required fields or image' });
-  }
-
   try {
-    const imagePath = req.file.path.replace(/\\/g, '/'); 
+    const { name, rating, category } = req.body; 
+
+    
+    if (!name || !rating || !category) {
+      return res.status(400).json({ message: 'Please fill in all fields' });
+    }
+
+    
+    let imageUrl = '';
+    if (req.file) {
+      imageUrl = req.file.path; 
+    }
+
+    
     const newFoodItem = new FoodItem({
       name,
       rating,
       category,
-      image: imagePath,
+      image: imageUrl,
     });
 
     await newFoodItem.save();
-    res.status(201).json({
-      ...newFoodItem.toObject(),
-      image: `${req.protocol}://${req.get('host')}/${imagePath}`
-    });
+
+    res.status(201).json(newFoodItem);
   } catch (error) {
-    res.status(500).json({ error: 'Error adding food item' });
+    res.status(500).json({ message: 'Error adding food item', error: error.message });
   }
 };
 
 exports.updateFoodItem = async (req, res) => {
-  const { id } = req.params;
-  const { name, rating, category } = req.body;
-
   try {
-    let updateData = { name, rating, category };
-
-    if (req.file) {
-      const imagePath = req.file.path.replace(/\\/g, '/');
-      updateData.image = imagePath;
+    const { id } = req.params;
+    const { name, rating, category } = req.body;
 
     
-      const oldItem = await FoodItem.findById(id);
-      if (oldItem && oldItem.image) {
-        fs.unlink(path.join(__dirname, '..', oldItem.image), (err) => {
-          if (err) console.error('Error deleting old image:', err);
-        });
-      }
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (rating) updateData.rating = rating;
+    if (category) updateData.category = category;
+
+    
+    if (req.file) {
+      updateData.image = req.file.path;
     }
 
+    
     const updatedFoodItem = await FoodItem.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!updatedFoodItem) {
-      return res.status(404).json({ error: 'Food item not found' });
+      return res.status(404).json({ message: 'Food item not found' });
     }
 
-    res.status(200).json({
-      ...updatedFoodItem.toObject(),
-      image: `${req.protocol}://${req.get('host')}/${updatedFoodItem.image}`
-    });
+    res.json({ message: 'Food item updated successfully', data: updatedFoodItem });
   } catch (error) {
-    res.status(500).json({ error: 'Error updating food item' });
+    res.status(500).json({ message: 'Error updating food item', error: error.message });
   }
 };
-
-exports.deleteFoodItem = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const deletedItem = await FoodItem.findByIdAndDelete(id);
-
-    if (!deletedItem) {
-      return res.status(404).json({ error: 'Food item not found' });
-    }
-    if (deletedItem.image) {
-      fs.unlink(path.join(__dirname, '..', deletedItem.image), (err) => {
-        if (err) console.error('Error deleting image:', err);
-      });
-    }
-
-    res.status(200).json({ message: 'Food item deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error deleting food item' });
-  }
-};
-
 exports.toggleFoodItem = async (req, res) => {
   try {
     const { id } = req.params;
     const foodItem = await FoodItem.findById(id);
-
+    
     if (!foodItem) {
       return res.status(404).json({ message: 'Food item not found' });
     }
@@ -109,12 +80,24 @@ exports.toggleFoodItem = async (req, res) => {
     foodItem.isActive = !foodItem.isActive;
     await foodItem.save();
 
-    res.status(200).json({
-      ...foodItem.toObject(),
-      image: `${req.protocol}://${req.get('host')}/${foodItem.image}`
-    });
+    res.json(foodItem);
   } catch (error) {
     res.status(500).json({ message: 'Error toggling food item', error: error.message });
+  }
+};
+
+exports.deleteFoodItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedFoodItem = await FoodItem.findByIdAndDelete(id);
+    
+    if (!deletedFoodItem) {
+      return res.status(404).json({ message: 'Food item not found' });
+    }
+
+    res.json({ message: 'Food item deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting food item', error: error.message });
   }
 };
 

@@ -375,9 +375,7 @@ const styles = StyleSheet.create({
   selectedCategoryItem: {
     opacity: 1,
   },
-  selectedCategoryIcon: {
-    backgroundColor: '#FF4B3A',
-  },
+
   selectedCategoryName: {
     color: '#FF4B3A',
     fontWeight: 'bold',
