@@ -39,6 +39,7 @@ exports.addEvent = async (req, res) => {
     res.status(500).json({ error: 'Error adding event', details: error.message });
   }
 };
+
 exports.updateEvent = async (req, res) => {
   const { id } = req.params;
   const { eventname, date, time, location } = req.body;
@@ -46,11 +47,10 @@ exports.updateEvent = async (req, res) => {
   try {
     const updateData = { eventname, date, time, location };
 
-    
     if (req.file) {
-      updateData.image = req.file.path; 
+      const uploadResult = await cloudinary.uploader.upload(req.file.path);
+      updateData.image = uploadResult.secure_url;
 
-      
       const oldEvent = await Event.findById(id);
       if (oldEvent && oldEvent.image) {
         const publicId = oldEvent.image.split('/').pop().split('.')[0];

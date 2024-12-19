@@ -30,6 +30,10 @@ const EventsScreen = () => {
   const [isAddingEvent, setIsAddingEvent] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
 
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
   const fetchEvents = async () => {
     try {
       const response = await axios.get(`${config.API_URL}/api/events`);
@@ -82,8 +86,25 @@ const EventsScreen = () => {
   const handleEditEvent = (event) => {
     setEditingEvent(event);
     setEventname(event.eventname);
-    setDate(new Date(event.date));
-    setTime(new Date(`2000-01-01T${event.time}`));
+    
+    // Parse the date string
+    const [year, month, day] = event.date.split('-');
+    const eventDate = new Date(year, month - 1, day);
+    setDate(eventDate);
+    
+    // Parse the time string
+    const [hours, minutes] = event.time.split(':');
+    const [hourValue, period] = hours.split(' ');
+    let hour = parseInt(hourValue, 10);
+    if (period && period.toLowerCase() === 'pm' && hour !== 12) {
+      hour += 12;
+    } else if (period && period.toLowerCase() === 'am' && hour === 12) {
+      hour = 0;
+    }
+    const eventTime = new Date();
+    eventTime.setHours(hour, parseInt(minutes, 10), 0);
+    setTime(eventTime);
+    
     setLocation(event.location);
     setSelectedImage({ uri: event.image });
     setIsAddingEvent(true);
@@ -141,8 +162,6 @@ const EventsScreen = () => {
     }
   };
 
-
-
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(Platform.OS === 'ios');
@@ -162,11 +181,6 @@ const EventsScreen = () => {
   const showTimepicker = () => {
     setShowTimePicker(true);
   };
-
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
 
   const renderEventItem = ({ item }) => (
     <View style={styles.eventCard}>
@@ -224,7 +238,7 @@ const EventsScreen = () => {
             style={styles.input}
           />
           <TouchableOpacity onPress={showDatepicker} style={styles.input}>
-            <Text>{date.toDateString()}</Text>
+            <Text>{date.toISOString().split('T')[0]}</Text>
           </TouchableOpacity>
           {showDatePicker && (
             <DateTimePicker
@@ -244,7 +258,7 @@ const EventsScreen = () => {
               testID="timePicker"
               value={time}
               mode="time"
-              is24Hour={true}
+              is24Hour={false}
               display="default"
               onChange={onTimeChange}
             />
@@ -375,7 +389,6 @@ const styles = StyleSheet.create({
   },
   eventList: {
     paddingBottom: 20,
-    flexGrow: 1,
   },
   eventCard: {
     flexDirection: 'row',
