@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,32 +10,28 @@ import {
   Modal,
   FlatList,
   Switch,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import axios from 'axios';
-import PropTypes from 'prop-types'; 
-import config from '../../config';
-
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import axios from "axios";
+import PropTypes from "prop-types";
+import config from "../../config";
 
 const CategoryItem = ({ icon, name, onPress, isSelected }) => (
-  <TouchableOpacity 
-    style={[
-      styles.categoryItem, 
-      isSelected && styles.selectedCategoryItem
-    ]} 
+  <TouchableOpacity
+    style={[styles.categoryItem, isSelected && styles.selectedCategoryItem]}
     onPress={() => onPress(name)}
   >
-    <View style={[
-      styles.categoryIcon,
-      isSelected && styles.selectedCategoryIcon
-    ]}>
-      <Ionicons name={icon} size={24} color={isSelected ? "#FFF" : "#FF4B3A"} />
+    <View
+      style={[styles.categoryIcon, isSelected && styles.selectedCategoryIcon]}
+    >
+      <Ionicons name={icon} size={24} color={isSelected ? "#FFF" : "#FFB347"} />
     </View>
-    <Text style={[
-      styles.categoryName,
-      isSelected && styles.selectedCategoryName
-    ]}>{name}</Text>
+    <Text
+      style={[styles.categoryName, isSelected && styles.selectedCategoryName]}
+    >
+      {name}
+    </Text>
   </TouchableOpacity>
 );
 
@@ -45,7 +41,6 @@ CategoryItem.propTypes = {
   onPress: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
 };
-
 
 const RestaurantCard = ({ image, name, rating, cuisine, onPress }) => (
   <TouchableOpacity style={styles.restaurantCard} onPress={onPress}>
@@ -62,27 +57,32 @@ const RestaurantCard = ({ image, name, rating, cuisine, onPress }) => (
 );
 
 RestaurantCard.propTypes = {
-  image: PropTypes.node.isRequired, 
+  image: PropTypes.node.isRequired,
   name: PropTypes.string.isRequired,
   rating: PropTypes.number.isRequired,
   cuisine: PropTypes.string.isRequired,
   onPress: PropTypes.func.isRequired,
 };
 
-
 export default function HomeScreen() {
   const [foodItems, setFoodItems] = useState([]);
   const [filteredFoodItems, setFilteredFoodItems] = useState([]);
   const [newFoodItem, setNewFoodItem] = useState({
-    image: '',
-    name: '',
-    rating: '',
-    category: '',
+    image: "",
+    name: "",
+    rating: "",
+    category: "",
   });
   const [modalVisible, setModalVisible] = useState(false);
-  const [categoryOptions] = useState(['Appetizers', 'Main Courses', 'Desserts', 'Drinks', 'Snacks']);
+  const [categoryOptions] = useState([
+    "Appetizers",
+    "Main Courses",
+    "Desserts",
+    "Drinks",
+    "Snacks",
+  ]);
   const [editingItem, setEditingItem] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
     const loadFoodItems = async () => {
@@ -98,11 +98,13 @@ export default function HomeScreen() {
       const response = await axios.get(`${config.API_URL}/api/food-items`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching food items:', error.response?.data || error.message);
+      console.error(
+        "Error fetching food items:",
+        error.response?.data || error.message
+      );
       return [];
     }
   };
-
 
   const handleCategorySelect = (category) => {
     if (editingItem) {
@@ -115,26 +117,33 @@ export default function HomeScreen() {
 
   const handleCategoryFilter = (category) => {
     setSelectedCategory(category);
-    if (category === 'All') {
+    if (category === "All") {
       setFilteredFoodItems(foodItems);
     } else {
-      const filteredItems = foodItems.filter((item) => item.category === category);
+      const filteredItems = foodItems.filter(
+        (item) => item.category === category
+      );
       setFilteredFoodItems(filteredItems);
     }
   };
 
   const toggleFoodItem = async (id) => {
     try {
-      const item = foodItems.find(item => item._id === id);
+      const item = foodItems.find((item) => item._id === id);
       const updatedStatus = !item.isActive;
-      await axios.patch(`${config.API_URL}/api/food-items/${id}/toggle`, { isActive: updatedStatus });
-      const updatedItems = foodItems.map(item => 
+      await axios.patch(`${config.API_URL}/api/food-items/${id}/toggle`, {
+        isActive: updatedStatus,
+      });
+      const updatedItems = foodItems.map((item) =>
         item._id === id ? { ...item, isActive: updatedStatus } : item
       );
       setFoodItems(updatedItems);
       setFilteredFoodItems(updatedItems);
     } catch (error) {
-      console.error('Error toggling food item:', error.response?.data || error.message);
+      console.error(
+        "Error toggling food item:",
+        error.response?.data || error.message
+      );
     }
   };
 
@@ -147,21 +156,53 @@ export default function HomeScreen() {
             <Text style={styles.subGreeting}>Manage your food items</Text>
           </View>
           <TouchableOpacity>
-  <Icon name="person" size={40} color="#FF4B3A" />
-</TouchableOpacity>
+            <Icon name="person" size={40} color="#FFB347" />
+          </TouchableOpacity>
         </View>
 
-
         <Text style={styles.sectionTitle}>Categories</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-          <CategoryItem icon="list" name="All" onPress={handleCategoryFilter} isSelected={selectedCategory === 'All'} />
-          <CategoryItem icon="restaurant" name="Appetizers" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Appetizers'} />
-          <CategoryItem icon="pizza" name="Main Courses" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Main Courses'} />
-          <CategoryItem icon="ice-cream" name="Desserts" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Desserts'} />
-          <CategoryItem icon="beer" name="Drinks" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Drinks'} />
-          <CategoryItem icon="fast-food" name="Snacks" onPress={handleCategoryFilter} isSelected={selectedCategory === 'Snacks'} />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesContainer}
+        >
+          <CategoryItem
+            icon="list"
+            name="All"
+            onPress={handleCategoryFilter}
+            isSelected={selectedCategory === "All"}
+          />
+          <CategoryItem
+            icon="restaurant"
+            name="Appetizers"
+            onPress={handleCategoryFilter}
+            isSelected={selectedCategory === "Appetizers"}
+          />
+          <CategoryItem
+            icon="pizza"
+            name="Main Courses"
+            onPress={handleCategoryFilter}
+            isSelected={selectedCategory === "Main Courses"}
+          />
+          <CategoryItem
+            icon="ice-cream"
+            name="Desserts"
+            onPress={handleCategoryFilter}
+            isSelected={selectedCategory === "Desserts"}
+          />
+          <CategoryItem
+            icon="beer"
+            name="Drinks"
+            onPress={handleCategoryFilter}
+            isSelected={selectedCategory === "Drinks"}
+          />
+          <CategoryItem
+            icon="fast-food"
+            name="Snacks"
+            onPress={handleCategoryFilter}
+            isSelected={selectedCategory === "Snacks"}
+          />
         </ScrollView>
-
 
         <View style={styles.foodItemsContainer}>
           {filteredFoodItems.map((item) => (
@@ -169,7 +210,9 @@ export default function HomeScreen() {
               <Image
                 source={{ uri: item.image }}
                 style={styles.foodImage}
-                onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
+                onError={(e) =>
+                  console.log("Image load error:", e.nativeEvent.error)
+                }
               />
               <Text style={styles.foodName}>{item.name}</Text>
               <Text style={styles.foodCategory}>{item.category}</Text>
@@ -178,8 +221,9 @@ export default function HomeScreen() {
                 <Switch
                   value={item.isActive}
                   onValueChange={() => toggleFoodItem(item._id)}
-                  thumbColor={item.isActive ? '#FF4B3A' : '#ccc'}
-                  trackColor={{ true: '#FFB3A7', false: '#e6e6e6' }}
+                  thumbColor={item.isActive ? "white" : "#ccc"}
+                  trackColor={{ true: "#FFB347", false: "#e6e6e6" }}
+                  
                 />
               </View>
             </View>
@@ -206,7 +250,10 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                 )}
               />
-              <TouchableOpacity style={styles.modalCloseButton} onPress={() => setModalVisible(false)}>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setModalVisible(false)}
+              >
                 <Text style={styles.modalCloseText}>Close</Text>
               </TouchableOpacity>
             </View>
@@ -225,32 +272,32 @@ HomeScreen.propTypes = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7F7',
+    backgroundColor: "#F7F7F7",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 40,
   },
   selectedCategoryIcon: {
-    backgroundColor: '#FF4B3A',
-    backgroundAttachment: 'fixed',
+    backgroundColor: "#FFB347",
+    backgroundAttachment: "fixed",
   },
   greeting: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   subGreeting: {
     fontSize: 14,
-    color: '#777',
+    color: "#777",
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
     marginHorizontal: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -260,28 +307,28 @@ const styles = StyleSheet.create({
   searchText: {
     fontSize: 14,
     marginLeft: 10,
-    color: '#999',
+    color: "#999",
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginVertical: 15,
     marginLeft: 20,
-    color: '#333',
+    color: "#333",
   },
   addFoodContainer: {
     paddingHorizontal: 20,
   },
   imagePickerButton: {
-    backgroundColor: '#FF4B3A',
+    backgroundColor: "#FFB347",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
     margin: 10,
   },
   imagePickerText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
   },
   imagePreview: {
@@ -290,36 +337,36 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   input: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     padding: 10,
     borderRadius: 10,
     marginVertical: 5,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderWidth: 1,
   },
   dropdown: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     padding: 10,
     borderRadius: 10,
     marginVertical: 5,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderWidth: 1,
   },
   dropdownText: {
-    color: '#777',
+    color: "#777",
     fontSize: 16,
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     padding: 20,
     borderRadius: 10,
-    width: '80%',
+    width: "80%",
   },
   modalItem: {
     paddingVertical: 10,
@@ -327,46 +374,46 @@ const styles = StyleSheet.create({
   },
   modalItemText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   modalCloseButton: {
     marginTop: 15,
     paddingVertical: 10,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalCloseText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
   },
   addButton: {
-    backgroundColor: '#FF4B3A',
+    backgroundColor: "#FFB347",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     marginTop: 20,
-    alignItems: 'center',
-    width: '90%',
-    alignSelf: 'center',
+    alignItems: "center",
+    width: "90%",
+    alignSelf: "center",
   },
   addButtonText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
   },
   categoriesContainer: {
     paddingHorizontal: 15,
   },
   categoryItem: {
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 5,
   },
   categoryIcon: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FFE5E5',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#FFE5E5",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 5,
   },
   categoryName: {
@@ -377,62 +424,61 @@ const styles = StyleSheet.create({
   },
 
   selectedCategoryName: {
-    color: '#FF4B3A',
-    fontWeight: 'bold',
+    color: "#FFB347",
+    fontWeight: "bold",
   },
   foodItemsContainer: {
     marginVertical: 20,
     paddingHorizontal: 20,
   },
   foodItemCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     padding: 15,
     marginVertical: 10,
     borderRadius: 10,
     elevation: 3,
   },
   foodImage: {
-     width: '100%',
+    width: "100%",
     height: 150,
   },
   foodName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   foodCategory: {
     fontSize: 14,
-    color: '#777',
+    color: "#777",
     marginBottom: 5,
   },
   foodRating: {
     fontSize: 14,
-    color: '#777',
+    color: "#777",
   },
   editButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 5,
     marginRight: 10,
   },
   editButtonText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
   },
   deleteButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: "#F44336",
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 5,
   },
   deleteButtonText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
   },
   foodItemActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     marginTop: 10,
   },
 });
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   Image,
   SafeAreaView,
   Switch,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
-import config from '../../config';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
+import config from "../../config";
 
 const EventsScreen = () => {
   const [events, setEvents] = useState([]);
@@ -20,18 +20,20 @@ const EventsScreen = () => {
       const response = await axios.get(`${config.API_URL}/api/events`);
       setEvents(response.data);
     } catch (error) {
-      console.error('Error fetching events:', error);
+      console.error("Error fetching events:", error);
     }
   };
 
   const toggleEventStatus = async (id, currentStatus) => {
     try {
       await axios.patch(`${config.API_URL}/api/events/${id}/toggle-status`);
-      setEvents(events.map(event => 
-        event._id === id ? { ...event, active: !currentStatus } : event
-      ));
+      setEvents(
+        events.map((event) =>
+          event._id === id ? { ...event, active: !currentStatus } : event
+        )
+      );
     } catch (error) {
-      console.error('Error toggling event status:', error);
+      console.error("Error toggling event status:", error);
     }
   };
 
@@ -57,12 +59,14 @@ const EventsScreen = () => {
           <Text style={styles.eventText}>{item.location}</Text>
         </View>
         <View style={styles.switchContainer}>
-          <Text style={styles.switchLabel}>{item.active ? 'Active' : 'Inactive'}</Text>
+          <Text style={styles.switchLabel}>
+            {item.active ? "Active" : "Inactive"}
+          </Text>
           <Switch
             value={item.active}
             onValueChange={() => toggleEventStatus(item._id, item.active)}
-            thumbColor={item.active ? '#FF4B3A' : '#ccc'}
-            trackColor={{ true: '#FFB3A7', false: '#e6e6e6' }}
+            thumbColor={item.active ? "white" : "#ccc"}
+            trackColor={{ true: "#FFB347", false: "#e6e6e6" }}
           />
         </View>
       </View>
@@ -79,7 +83,7 @@ const EventsScreen = () => {
         keyExtractor={(item) => item._id}
         renderItem={renderEventItem}
         contentContainerStyle={styles.eventList}
-        showsVerticalScrollIndicator={false} 
+        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );
@@ -88,28 +92,25 @@ const EventsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
     padding: 20,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
   headerTitle: {
- 
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginBottom: 0,
-      textAlign: 'center',
-     
-    
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 0,
+    textAlign: "center",
   },
   eventList: {
     padding: 10,
   },
   eventCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   eventImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
@@ -127,30 +128,29 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
   },
   eventDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 5,
   },
   eventText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginLeft: 5,
   },
   switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: 10,
   },
   switchLabel: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
 });
 
 export default EventsScreen;
-

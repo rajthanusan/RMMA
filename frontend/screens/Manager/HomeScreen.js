@@ -19,13 +19,12 @@ import * as ImagePicker from 'expo-image-picker';
 import PropTypes from 'prop-types'; 
 import config from '../../config';
 
-
 const CategoryItem = ({ icon, name, onPress, isSelected }) => (
   <TouchableOpacity style={[styles.categoryItem, isSelected && styles.selectedCategoryItem]} onPress={() => onPress(name)}>
     <View style={[styles.categoryIcon, isSelected && styles.selectedCategoryIcon]}>
-      <Ionicons name={icon} size={24} color={isSelected ? "#FFFFFF" : "#FF4B3A"} />
+      <Ionicons name={icon} size={24} color={isSelected ? "#FFFFFF" : "#FFB347"} />
     </View>
-    <Text style={[styles.categoryName, isSelected && { color: '#FF4B3A' }]}>{name}</Text>
+    <Text style={[styles.categoryName, isSelected && { color: '#FFB347' }]}>{name}</Text>
   </TouchableOpacity>
 );
 
@@ -35,7 +34,6 @@ CategoryItem.propTypes = {
   onPress: PropTypes.func.isRequired,
   isSelected: PropTypes.bool,
 };
-
 
 const RestaurantCard = ({ image, name, rating, cuisine, onPress }) => (
   <TouchableOpacity style={styles.restaurantCard} onPress={onPress}>
@@ -52,13 +50,12 @@ const RestaurantCard = ({ image, name, rating, cuisine, onPress }) => (
 );
 
 RestaurantCard.propTypes = {
-  image: PropTypes.node.isRequired, 
+  image: PropTypes.number.isRequired,
   name: PropTypes.string.isRequired,
   rating: PropTypes.string.isRequired,
   cuisine: PropTypes.string.isRequired,
   onPress: PropTypes.func.isRequired,
 };
-
 
 export default function HomeScreen() {
   const [foodItems, setFoodItems] = useState([]);
@@ -68,13 +65,14 @@ export default function HomeScreen() {
     name: '',
     rating: '',
     category: '',
+    price: '',
+    description: '',
   });
   const [modalVisible, setModalVisible] = useState(false);
   const [categoryOptions] = useState(['Appetizers', 'Main Courses', 'Desserts', 'Drinks', 'Snacks']);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
-
 
   useEffect(() => {
     const loadFoodItems = async () => {
@@ -95,66 +93,49 @@ export default function HomeScreen() {
     }
   };
 
-  const handleAddFoodItem = async () => {
-    if (!newFoodItem.image || !newFoodItem.name || !newFoodItem.rating || !newFoodItem.category) {
+  const handleFormSubmit = async () => {
+    const currentItem = editingItem || newFoodItem;
+    if (!currentItem.name || !currentItem.rating || !currentItem.category || !currentItem.price || !currentItem.description) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     const formData = new FormData();
-    formData.append('image', {
-      uri: newFoodItem.image,
-      name: 'photo.jpg',
-      type: 'image/jpeg',
-    });
-    formData.append('name', newFoodItem.name);
-    formData.append('rating', newFoodItem.rating);
-    formData.append('category', newFoodItem.category);
-
-    try {
-      const response = await axios.post(`${config.API_URL}/api/food-items`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      console.log('Food item added:', response.data);
-      const updatedItems = await fetchFoodItems();
-      setFoodItems(updatedItems);
-      setFilteredFoodItems(updatedItems);
-      setNewFoodItem({ image: '', name: '', rating: '', category: '' });
-      setShowAddForm(false);
-    } catch (error) {
-      console.error('Error adding food item:', error.response?.data || error.message);
-    }
-  };
-
-  const handleEditFoodItem = async () => {
-    if (!editingItem || !editingItem.name || !editingItem.rating || !editingItem.category) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    const formData = new FormData();
-    if (editingItem.image && editingItem.image !== editingItem.originalImage) {
+    if (currentItem.image) {
       formData.append('image', {
-        uri: editingItem.image,
+        uri: currentItem.image,
         name: 'photo.jpg',
         type: 'image/jpeg',
       });
     }
-    formData.append('name', editingItem.name);
-    formData.append('rating', editingItem.rating);
-    formData.append('category', editingItem.category);
+    formData.append('name', currentItem.name);
+    formData.append('rating', currentItem.rating);
+    formData.append('category', currentItem.category);
+    formData.append('price', currentItem.price.toString()); 
+    formData.append('description', currentItem.description);
 
     try {
-      const response = await axios.put(`${config.API_URL}/api/food-items/${editingItem._id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      console.log('Food item updated:', response.data);
+      let response;
+      if (editingItem) {
+        response = await axios.put(`${config.API_URL}/api/food-items/${editingItem._id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        console.log('Food item updated:', response.data);
+      } else {
+        response = await axios.post(`${config.API_URL}/api/food-items`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        console.log('Food item added:', response.data);
+      }
+      
       const updatedItems = await fetchFoodItems();
       setFoodItems(updatedItems);
       setFilteredFoodItems(updatedItems);
+      setNewFoodItem({ image: '', name: '', rating: '', category: '', price: '', description: '' });
       setEditingItem(null);
+      setShowAddForm(false);
     } catch (error) {
-      console.error('Error updating food item:', error.response?.data || error.message);
+      console.error('Error managing food item:', error.response?.data || error.message);
     }
   };
 
@@ -229,11 +210,33 @@ export default function HomeScreen() {
         placeholder="Rating (e.g., 4.5)"
         value={editingItem ? editingItem.rating : newFoodItem.rating}
         onChangeText={(text) => editingItem ? setEditingItem({ ...editingItem, rating: text }) : setNewFoodItem({ ...newFoodItem, rating: text })}
+        keyboardType="numeric"
       />
       <TouchableOpacity style={styles.dropdown} onPress={() => setModalVisible(true)}>
         <Text style={styles.dropdownText}>{editingItem ? editingItem.category : newFoodItem.category || 'Select Category'}</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.addButton} onPress={editingItem ? handleEditFoodItem : handleAddFoodItem}>
+      <TextInput
+        style={styles.input}
+        placeholder="Price"
+        value={editingItem ? editingItem.price.toString() : newFoodItem.price.toString()}
+        onChangeText={(text) => {
+          const numericPrice = text.replace(/[^0-9.]/g, '');
+          if (editingItem) {
+            setEditingItem({ ...editingItem, price: numericPrice });
+          } else {
+            setNewFoodItem({ ...newFoodItem, price: numericPrice });
+          }
+        }}
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={[styles.input, styles.descriptionInput]}
+        placeholder="Description"
+        value={editingItem ? editingItem.description : newFoodItem.description}
+        onChangeText={(text) => editingItem ? setEditingItem({ ...editingItem, description: text }) : setNewFoodItem({ ...newFoodItem, description: text })}
+        multiline
+      />
+      <TouchableOpacity style={styles.addButton} onPress={handleFormSubmit}>
         <Text style={styles.addButtonText}>{editingItem ? 'Update Food Item' : 'Add Food Item'}</Text>
       </TouchableOpacity>
       {editingItem && (
@@ -247,26 +250,22 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Hello, Manager!</Text>
             <Text style={styles.subGreeting}>Manage your food items</Text>
           </View>
           <TouchableOpacity>
-  <Icon name="person" size={40} color="#FF4B3A" />
-</TouchableOpacity>
-
+            <Icon name="person" size={40} color="#FFB347" />
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.addButton} onPress={() => setShowAddForm(!showAddForm)}>
           <Text style={styles.addButtonText}>{showAddForm ? 'Hide Add Form' : 'Add New Food Item'}</Text>
         </TouchableOpacity>
 
-
         {(showAddForm || editingItem) && renderFoodForm()}
 
-        {/* Categories Section */}
         <Text style={styles.sectionTitle}>Categories</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
           <CategoryItem icon="grid-outline" name="All" onPress={handleCategoryFilter} isSelected={selectedCategory === 'All'} />
@@ -288,22 +287,20 @@ export default function HomeScreen() {
               <Text style={styles.foodName}>{item.name}</Text>
               <Text style={styles.foodCategory}>{item.category}</Text>
               <Text style={styles.foodRating}>Rating: {item.rating}</Text>
+              <Text style={styles.foodPrice}>Price: ${item.price}</Text>
+              <Text style={styles.foodDescription} numberOfLines={2}>{item.description}</Text>
               <View style={styles.foodItemActions}>
-  <TouchableOpacity onPress={() => setEditingItem(item)}>
-    <Ionicons name="create-outline" size={24} color="#FF4B3A" />
-  </TouchableOpacity>
-  <TouchableOpacity onPress={() => handleDeleteFoodItem(item._id)}>
-    <Ionicons name="trash-outline" size={24} color="#FF4B3A" />
-  </TouchableOpacity>
-
-
-                
+                <TouchableOpacity onPress={() => setEditingItem(item)}>
+                  <Ionicons name="create-outline" size={24} color="#FFB347" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteFoodItem(item._id)}>
+                  <Ionicons name="trash-outline" size={24} color="#FFB347" />
+                </TouchableOpacity>
               </View>
             </View>
           ))}
         </View>
 
-        {/* Modal for category selection */}
         <Modal
           animationType="slide"
           transparent={true}
@@ -361,8 +358,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#777',
   },
-
-
+  
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -389,7 +385,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   imagePickerButton: {
-    backgroundColor: '#FF4B3A',
+    backgroundColor: '#FFB347',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -452,11 +448,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCloseText: {
-    color: '#FFF',
+    color: '#FFB347',
     fontSize: 16,
   },
   addButton: {
-    backgroundColor: '#FF4B3A',
+    backgroundColor: '#FFB347',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -493,12 +489,10 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   selectedCategoryIcon: {
-    color: '#FFFFFF',
-    padding: 5, 
-    backgroundColor: '#FF4B3A',
+    backgroundColor: '#FFB347',
   },
   selectedCategoryName: {
-    color: '#FF4B3A',
+    color: '#FFB347',
     fontWeight: 'bold',
   },
   foodItemsContainer: {
@@ -513,7 +507,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   foodImage: {
-     width: '100%',
+    width: '100%',
     height: 150,
   },
   foodName: {
@@ -529,31 +523,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#777',
   },
-  editButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  editButtonText: {
-    color: '#FFF',
+  foodPrice: {
     fontSize: 14,
+    color: '#777',
+    marginBottom: 5,
   },
-  deleteButton: {
-    backgroundColor: '#F44336',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-  },
-  deleteButtonText: {
-    color: '#FFF',
+  foodDescription: {
     fontSize: 14,
+    color: '#555',
+    marginBottom: 10,
   },
   foodItemActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     marginTop: 10,
+  },
+  descriptionInput: {
+    height: 100,
+    textAlignVertical: 'top',
   },
 });
 

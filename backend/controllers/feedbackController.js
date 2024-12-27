@@ -1,54 +1,54 @@
 const Feedback = require('../models/Feedback');
 const nodemailer = require('nodemailer');
 
-
-exports.submitFeedback = async (req, res) => {
-  const { name, email, feedback } = req.body;
-
-  if (!name || !email || !feedback) {
-    return res.status(400).json({ error: 'All fields are required.' });
-  }
-
+const submitFeedback = async (req, res) => {
   try {
-    const newFeedback = new Feedback({ name, email, feedback });
+    const { name, email, feedbackType, message } = req.body;
+
+    
+    const newFeedback = new Feedback({ name, email, feedbackType, message });
     await newFeedback.save();
-    res.status(200).json({ message: 'Feedback submitted successfully.' });
+
+    
+    return res.status(201).json({ message: 'Feedback submitted successfully!' });
   } catch (error) {
-    console.error('Error submitting feedback:', error);
-    res.status(500).json({ error: 'Internal server error.' });
+    console.error(error);
+    return res.status(500).json({ message: 'Failed to submit feedback.' });
   }
 };
 
 
-exports.getFeedback = async (req, res) => {
+const getAllFeedback = async (req, res) => {
   try {
     const feedbacks = await Feedback.find(); 
-    res.status(200).json(feedbacks);
+    return res.status(200).json(feedbacks);
   } catch (error) {
-    console.error('Error fetching feedback:', error);
-    res.status(500).json({ error: 'Internal server error.' });
+    console.error(error);
+    return res.status(500).json({ message: 'Failed to retrieve feedback.' });
   }
 };
 
 
-exports.deleteFeedback = async (req, res) => {
-  const { id } = req.params;
-
+const deleteFeedback = async (req, res) => {
   try {
+    const { id } = req.params;
+
+    
     const feedback = await Feedback.findByIdAndDelete(id);
 
     if (!feedback) {
-      return res.status(404).json({ error: 'Feedback not found.' });
+      return res.status(404).json({ message: 'Feedback not found.' });
     }
 
-    res.status(200).json({ message: 'Feedback deleted successfully.' });
+    return res.status(200).json({ message: 'Feedback deleted successfully.' });
   } catch (error) {
-    console.error('Error deleting feedback:', error);
-    res.status(500).json({ error: 'Internal server error.' });
+    console.error(error);
+    return res.status(500).json({ message: 'Failed to delete feedback.' });
   }
 };
 
-exports.respondToFeedback = async (req, res) => {
+
+const respondToFeedback = async (req, res) => {
   const { email, subject, message } = req.body;
 
   if (!email || !subject || !message) {
@@ -78,3 +78,6 @@ exports.respondToFeedback = async (req, res) => {
     res.status(500).json({ error: 'Unable to send response.' });
   }
 };
+
+
+module.exports = { submitFeedback, getAllFeedback, deleteFeedback ,respondToFeedback};

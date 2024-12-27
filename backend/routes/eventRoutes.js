@@ -10,4 +10,3 @@ router.delete('/events/:id', eventController.deleteEvent);
 router.patch('/events/:id/toggle-status', eventController.toggleEventStatus);
 
 module.exports = router;
-

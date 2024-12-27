@@ -8,27 +8,26 @@ exports.getFoodItems = async (req, res) => {
     res.status(500).json({ message: 'Error fetching food items', error: error.message });
   }
 };
-
 exports.addFoodItem = async (req, res) => {
   try {
-    const { name, rating, category } = req.body; 
+    const { name, rating, category, price, description } = req.body;
 
-    
     if (!name || !rating || !category) {
-      return res.status(400).json({ message: 'Please fill in all fields' });
+      return res.status(400).json({ message: 'Please fill in all required fields' });
     }
 
     
     let imageUrl = '';
     if (req.file) {
-      imageUrl = req.file.path; 
+      imageUrl = req.file.path;
     }
 
-    
     const newFoodItem = new FoodItem({
       name,
       rating,
       category,
+      price: price || 0,  
+      description: description || '',  
       image: imageUrl,
     });
 
@@ -40,23 +39,23 @@ exports.addFoodItem = async (req, res) => {
   }
 };
 
+
 exports.updateFoodItem = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, rating, category } = req.body;
+    const { name, rating, category, price, description } = req.body;
 
-    
     const updateData = {};
     if (name) updateData.name = name;
     if (rating) updateData.rating = rating;
     if (category) updateData.category = category;
+    if (price !== undefined) updateData.price = price;  
+    if (description !== undefined) updateData.description = description;  
 
-    
     if (req.file) {
       updateData.image = req.file.path;
     }
 
-    
     const updatedFoodItem = await FoodItem.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!updatedFoodItem) {
@@ -68,6 +67,7 @@ exports.updateFoodItem = async (req, res) => {
     res.status(500).json({ message: 'Error updating food item', error: error.message });
   }
 };
+
 exports.toggleFoodItem = async (req, res) => {
   try {
     const { id } = req.params;

@@ -1,10 +1,18 @@
+ 
 const express = require('express');
-const router = express.Router();
-const feedbackController = require('../controllers/feedbackController');
+const { submitFeedback, getAllFeedback, deleteFeedback ,respondToFeedback } = require('../controllers/feedbackController');
 
-router.post('/feedback', feedbackController.submitFeedback);
-router.get('/feedback', feedbackController.getFeedback);
-router.delete('/feedback/:id', feedbackController.deleteFeedback);
-router.post('/feedback/respond', feedbackController.respondToFeedback);
+const router = express.Router();
+
+ 
+router.post('/submit', submitFeedback);
+
+ 
+router.get('/', getAllFeedback);
+
+ 
+router.delete('/:id', deleteFeedback);
+
+router.post('/respond', respondToFeedback);
 
 module.exports = router;

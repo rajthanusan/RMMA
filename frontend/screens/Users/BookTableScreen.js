@@ -7,14 +7,39 @@ import config from '../../config';
 export default function BookTableScreen() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [guests, setGuests] = useState('');
+  const [person, setPerson] = useState(''); 
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
+  const [message, setMessage] = useState(''); 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
+  
+  const validateEmail = (email) => {
+    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    return emailPattern.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    const phonePattern = /^[0-9]{10}$/;  
+    return phonePattern.test(phone);
+  };
+
   const handleReservation = () => {
-    if (email && phone && guests && date && time) {
+    
+    if (email && phone && person && date && time) {
+      
+      if (!validateEmail(email)) {
+        Alert.alert('Error', 'Please enter a valid email address.', [{ text: 'OK' }]);
+        return;
+      }
+
+      
+      if (!validatePhone(phone)) {
+        Alert.alert('Error', 'Please enter a valid 10-digit phone number.', [{ text: 'OK' }]);
+        return;
+      }
+
       const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
 
       const hours = time.getHours();
@@ -23,14 +48,16 @@ export default function BookTableScreen() {
       const formattedTime = `${(hours % 12 || 12).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
 
       const reservationData = {
-        email,
+        name: email, 
         phone,
-        guests,
-        date: formattedDate,
+        person, 
+        reservationDate: formattedDate,
         time: formattedTime,
+        message, 
+        email,
       };
 
-      fetch(`${config.API_URL}/api/reserve`, {
+      fetch(`${config.API_URL}/api/book-table`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,20 +69,22 @@ export default function BookTableScreen() {
         console.log(data); 
         Alert.alert(
           'Reservation Request Sent',
-          `Thank you, ${email}! Your reservation request for ${guests} guests on ${formattedDate} at ${formattedTime} has been sent. You will receive a confirmation message shortly.`,
+          `Thank you, ${email}! Your reservation request for ${person} guests on ${formattedDate} at ${formattedTime} has been sent. You will receive a confirmation message shortly.`,
           [{ text: 'OK' }]
-          );
-          
-          setEmail('');
-          setPhone('');
-          setGuests('');
-          setDate(new Date());
-          setTime(new Date());
-        })
-        .catch((error) => {
-          console.error('Error:', error);
-          Alert.alert('Error', 'There was an issue with your reservation. Please try again.', [{ text: 'OK' }]);
-        });
+        );
+        
+        
+        setEmail('');
+        setPhone('');
+        setPerson('');
+        setDate(new Date());
+        setTime(new Date());
+        setMessage(''); 
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        Alert.alert('Error', 'There was an issue with your reservation. Please try again.', [{ text: 'OK' }]);
+      });
     } else {
       Alert.alert('Error', 'Please fill in all fields', [{ text: 'OK' }]);
     }
@@ -81,9 +110,15 @@ export default function BookTableScreen() {
         <TextInput
           style={styles.input}
           placeholder="Number of Guests"
-          value={guests}
-          onChangeText={setGuests}
+          value={person} 
+          onChangeText={setPerson}
           keyboardType="numeric"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Message (Optional)"
+          value={message} 
+          onChangeText={setMessage}
         />
         <TouchableOpacity
           style={styles.dateButton}
@@ -176,7 +211,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   reserveButton: {
-    backgroundColor: '#FF4B3A',
+    backgroundColor: '#FFB347',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',

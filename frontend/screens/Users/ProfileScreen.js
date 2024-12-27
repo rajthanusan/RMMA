@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,15 +9,15 @@ import {
   ScrollView,
   Alert,
   Image,
-} from 'react-native';
-import axios from 'axios';
-import { Ionicons } from '@expo/vector-icons';
-import PropTypes from 'prop-types';
-import config from '../../config';
+} from "react-native";
+import axios from "axios";
+import { Ionicons } from "@expo/vector-icons";
+import PropTypes from "prop-types";
+import config from "../../config";
 
 const ProfileOption = ({ icon, title, onPress }) => (
   <TouchableOpacity style={styles.option} onPress={onPress}>
-    <Ionicons name={icon} size={24} color="#FF4B3A" />
+    <Ionicons name={icon} size={24} color="#FFB347" />
     <Text style={styles.optionTitle}>{title}</Text>
   </TouchableOpacity>
 );
@@ -30,115 +30,123 @@ ProfileOption.propTypes = {
 
 export default function ProfileScreen({ navigation }) {
   const [isRegister, setIsRegister] = useState(false);
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState('');
-  const [usernameError, setUsernameError] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [userRole, setUserRole] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const handleRegister = async () => {
-    
     if (!username.trim()) {
-      setUsernameError('Username is required');
+      setUsernameError("Username is required");
       return;
     } else {
-      setUsernameError('');
+      setUsernameError("");
     }
-  
-    
+
     if (!email.trim()) {
-      setEmailError('Email is required');
+      setEmailError("Email is required");
       return;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {  
-      setEmailError('Please enter a valid email');
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError("Please enter a valid email");
       return;
     } else {
-      setEmailError('');
+      setEmailError("");
     }
-  
-    
+
     if (!password.trim()) {
-      setPasswordError('Password is required');
+      setPasswordError("Password is required");
       return;
     } else {
-      setPasswordError('');
+      setPasswordError("");
     }
-  
+
     try {
-      const response = await axios.post(`${config.API_URL}/api/register`, {
-        username,
+      const response = await axios.post(`${config.API_URL}/auth/register`, {
         email,
         password,
-        role: 'user',
+        username,
+        role: "user",
       });
-      Alert.alert('Success', response.data.message);
+      const { token, message } = response.data;
+      Alert.alert("Success", message);
       setIsRegister(false);
+      
+      
+      setIsLoggedIn(true);
+      setUserRole("user");
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.error || 'Registration failed');
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Registration failed"
+      );
     }
   };
-  
 
   const handleLogin = async () => {
     if (!email.trim()) {
-      setEmailError('Email is required');
+      setEmailError("Email is required");
       return;
     } else {
-      setEmailError('');
+      setEmailError("");
     }
 
     if (!password.trim()) {
-      setPasswordError('Password is required');
+      setPasswordError("Password is required");
       return;
     } else {
-      setPasswordError('');
+      setPasswordError("");
     }
 
     try {
-      const response = await axios.post(`${config.API_URL}/api/login`, {
+      const response = await axios.post(`${config.API_URL}/auth/login`, {
         email,
         password,
       });
 
-      const { message, role } = response.data;
+      const { token, message, user } = response.data;
 
-      Alert.alert('Success', message);
+      Alert.alert("Success", message);
       setIsLoggedIn(true);
-      setUserRole(role);
+      setUserRole(user.role);
+      setUsername(user.email.split("@")[0]); 
+      
+      
 
-      if (role === 'manager') {
-        navigation.navigate('ManagerPage');
-      } else if (role === 'operator') {
-        navigation.navigate('OperatorPage');
+      if (user.role === "manager") {
+        navigation.navigate("ManagerPage");
+      } else if (user.role === "operator") {
+        navigation.navigate("OperatorPage");
       } else {
-        navigation.navigate('User');
+        navigation.navigate("User");
       }
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.error || 'Login failed');
+      Alert.alert("Error", error.response?.data?.message || "Login failed");
     }
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setUserRole('');
-    setEmail('');  
-    setPassword(''); 
-    setUsername('');  
-    navigation.navigate('User'); 
+    setUserRole("");
+    setEmail("");
+    setPassword("");
+    setUsername("");
+    
+    
+    navigation.navigate("User");
   };
 
   const handleInputChange = (field, value) => {
-    if (field === 'username') setUsername(value);
-    if (field === 'email') setEmail(value);
-    if (field === 'password') setPassword(value);
+    if (field === "username") setUsername(value);
+    if (field === "email") setEmail(value);
+    if (field === "password") setPassword(value);
 
-    
-    if (field === 'username' && usernameError) setUsernameError('');
-    if (field === 'email' && emailError) setEmailError('');
-    if (field === 'password' && passwordError) setPasswordError('');
+    if (field === "username" && usernameError) setUsernameError("");
+    if (field === "email" && emailError) setEmailError("");
+    if (field === "password" && passwordError) setPasswordError("");
   };
 
   if (isLoggedIn) {
@@ -146,17 +154,44 @@ export default function ProfileScreen({ navigation }) {
       <SafeAreaView style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Image source={require('../../assets/images/food1.jpeg')} style={styles.profilePic} />
+            <Image
+              source={require("../../assets/images/food1.jpeg")}
+              style={styles.profilePic}
+            />
             <Text style={styles.name}>{username}</Text>
             <Text style={styles.email}>{email}</Text>
           </View>
           <View style={styles.optionsContainer}>
-            <ProfileOption icon="person-outline" title="Edit Profile" onPress={() => {}} />
-            <ProfileOption icon="location-outline" title="Saved Addresses" onPress={() => {}} />
-            <ProfileOption icon="card-outline" title="Payment Methods" onPress={() => {}} />
-            <ProfileOption icon="notifications-outline" title="Notifications" onPress={() => {}} />
-            <ProfileOption icon="help-circle-outline" title="Help & Support" onPress={() => {}} />
-            <ProfileOption icon="settings-outline" title="Settings" onPress={() => {}} />
+            <ProfileOption
+              icon="person-outline"
+              title="Edit Profile"
+              onPress={() => {}}
+            />
+            <ProfileOption
+              icon="location-outline"
+              title="Saved Addresses"
+              onPress={() => {}}
+            />
+            <ProfileOption
+              icon="card-outline"
+              title="Payment Methods"
+              onPress={() => {}}
+            />
+            <ProfileOption
+              icon="notifications-outline"
+              title="Notifications"
+              onPress={() => {}}
+            />
+            <ProfileOption
+              icon="help-circle-outline"
+              title="Help & Support"
+              onPress={() => {}}
+            />
+            <ProfileOption
+              icon="settings-outline"
+              title="Settings"
+              onPress={() => {}}
+            />
           </View>
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutText}>Log Out</Text>
@@ -170,7 +205,7 @@ export default function ProfileScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>{isRegister ? 'Register' : 'Login'}</Text>
+          <Text style={styles.title}>{isRegister ? "Register" : "Login"}</Text>
         </View>
 
         <View style={styles.formContainer}>
@@ -179,16 +214,18 @@ export default function ProfileScreen({ navigation }) {
               style={[styles.input, usernameError ? styles.inputError : null]}
               placeholder="Username"
               value={username}
-              onChangeText={(value) => handleInputChange('username', value)}
+              onChangeText={(value) => handleInputChange("username", value)}
             />
           )}
-          {usernameError && <Text style={styles.errorText}>{usernameError}</Text>}
+          {usernameError && (
+            <Text style={styles.errorText}>{usernameError}</Text>
+          )}
 
           <TextInput
             style={[styles.input, emailError ? styles.inputError : null]}
             placeholder="Email"
             value={email}
-            onChangeText={(value) => handleInputChange('email', value)}
+            onChangeText={(value) => handleInputChange("email", value)}
             keyboardType="email-address"
           />
           {emailError && <Text style={styles.errorText}>{emailError}</Text>}
@@ -197,24 +234,26 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.input, passwordError ? styles.inputError : null]}
             placeholder="Password"
             value={password}
-            onChangeText={(value) => handleInputChange('password', value)}
+            onChangeText={(value) => handleInputChange("password", value)}
             secureTextEntry
           />
-          {passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
+          {passwordError && (
+            <Text style={styles.errorText}>{passwordError}</Text>
+          )}
 
           <TouchableOpacity
             style={styles.button}
             onPress={isRegister ? handleRegister : handleLogin}
           >
             <Text style={styles.buttonText}>
-              {isRegister ? 'Register' : 'Login'}
+              {isRegister ? "Register" : "Login"}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setIsRegister(!isRegister)}>
             <Text style={styles.toggleText}>
               {isRegister
-                ? 'Already have an account? Login'
+                ? "Already have an account? Login"
                 : "Don't have an account? Register"}
             </Text>
           </TouchableOpacity>
@@ -227,21 +266,24 @@ export default function ProfileScreen({ navigation }) {
 ProfileScreen.propTypes = {
   navigation: PropTypes.object.isRequired,
 };
+ProfileScreen.propTypes = {
+  navigation: PropTypes.object.isRequired,
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7F7',
+    backgroundColor: "#F7F7F7",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FF4B3A',
+    fontWeight: "bold",
+    color: "#FFB347",
   },
   profilePic: {
     width: 100,
@@ -251,18 +293,18 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   email: {
     fontSize: 16,
-    color: '#777',
+    color: "#777",
   },
   formContainer: {
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginTop: 20,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -270,64 +312,63 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    borderColor: '#E5E5E5',
+    borderColor: "#E5E5E5",
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 15,
     paddingHorizontal: 15,
     fontSize: 16,
-    backgroundColor: '#F7F7F7',
+    backgroundColor: "#F7F7F7",
   },
   inputError: {
-    borderColor: 'red',
+    borderColor: "red",
   },
   errorText: {
-    color: 'red',
+    color: "red",
     fontSize: 12,
     marginBottom: 10,
   },
   button: {
-    backgroundColor: '#FF4B3A',
+    backgroundColor: "#FFB347",
     borderRadius: 8,
     padding: 15,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   toggleText: {
     marginTop: 15,
-    textAlign: 'center',
-    color: '#FF4B3A',
+    textAlign: "center",
+    color: "#FFB347",
   },
   optionsContainer: {
     padding: 15,
   },
   option: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: "#ddd",
   },
   optionTitle: {
     marginLeft: 15,
     fontSize: 16,
   },
   logoutButton: {
-    backgroundColor: '#FF4B3A',
+    backgroundColor: "#FFB347",
     borderRadius: 8,
     padding: 15,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
     marginBottom: 20,
   },
   logoutText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
-

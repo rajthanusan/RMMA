@@ -1,13 +1,13 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
-import HomeScreen from './HomeScreen';
-import EventsScreen from './EventsScreen';
-import BookTableScreen from './BookTableScreen';
-import FeedbackScreen from './FeedbackScreen';
+import HomeScreen from "./HomeScreen";
+import EventsScreen from "./EventsScreen";
+import BookTableScreen from "./BookTableScreen";
+import FeedbackScreen from "./FeedbackScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -16,11 +16,10 @@ function LogoutScreen() {
   const navigation = useNavigation();
 
   React.useEffect(() => {
-    
-    navigation.navigate('User');
+    navigation.navigate("User");
   }, [navigation]);
 
-  return null; 
+  return null;
 }
 
 function MainTabs() {
@@ -31,30 +30,30 @@ function MainTabs() {
           let iconName;
 
           switch (route.name) {
-            case 'Home':
-              iconName = focused ? 'home' : 'home-outline';
+            case "Home":
+              iconName = focused ? "home" : "home-outline";
               break;
-            case 'Events':
-              iconName = focused ? 'calendar' : 'calendar-outline';
+            case "Events":
+              iconName = focused ? "calendar" : "calendar-outline";
               break;
-            case 'Reservation':
-              iconName = focused ? 'restaurant' : 'restaurant-outline';
+            case "Reservation":
+              iconName = focused ? "restaurant" : "restaurant-outline";
               break;
-             
-            case 'Feedback':
-              iconName = focused ? 'chatbubble' : 'chatbubble-outline';
+
+            case "Feedback":
+              iconName = focused ? "chatbubble" : "chatbubble-outline";
               break;
-            case 'Logout':
-              iconName = focused ? 'log-out' : 'log-out-outline';
+            case "Logout":
+              iconName = focused ? "log-out" : "log-out-outline";
               break;
             default:
-              iconName = 'help-circle-outline'; 
+              iconName = "help-circle-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#FF4B3A',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: "#FFB347",
+        tabBarInactiveTintColor: "gray",
         headerShown: false,
       })}
     >
@@ -62,14 +61,14 @@ function MainTabs() {
       <Tab.Screen name="Events" component={EventsScreen} />
       <Tab.Screen name="Reservation" component={BookTableScreen} />
       <Tab.Screen name="Feedback" component={FeedbackScreen} />
-   
-      <Tab.Screen 
-        name="Logout" 
+
+      <Tab.Screen
+        name="Logout"
         component={LogoutScreen}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             e.preventDefault();
-            navigation.navigate('User');
+            navigation.navigate("User");
           },
         })}
       />
@@ -84,4 +83,3 @@ export default function OperatorPage() {
     </Stack.Navigator>
   );
 }
-

@@ -25,25 +25,45 @@ EventItem.propTypes = {
 
 export default function EventsScreen() {
   const [events, setEvents] = useState([]);
+  const [isDataFetched, setIsDataFetched] = useState(false);
+
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await fetch(`${config.API_URL}/api/events`);
         const data = await response.json();
-        
 
-        const activeEvents = data.filter(event => event.active);
         
+        const activeEvents = data.filter(event => event.active);
+
         setEvents(activeEvents);
+
+        
+        if (activeEvents.length > 0) {
+          setIsDataFetched(true);
+        }
       } catch (error) {
         console.error("Error fetching events:", error);
       }
     };
-  
+
+    
     fetchEvents();
-  }, []);
-  
+
+    
+    let interval;
+    if (isDataFetched) {
+      interval = setInterval(fetchEvents, 5000);
+    }
+
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isDataFetched]);
 
 
   return (

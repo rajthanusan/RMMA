@@ -11,6 +11,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
@@ -29,9 +30,12 @@ const EventsScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isAddingEvent, setIsAddingEvent] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [rooms, setRooms] = useState([]);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   useEffect(() => {
     fetchEvents();
+    fetchRooms();
   }, []);
 
   const fetchEvents = async () => {
@@ -41,6 +45,16 @@ const EventsScreen = () => {
     } catch (error) {
       console.error('Error fetching events:', error);
       Alert.alert('Error', 'Failed to fetch events. Please try again.');
+    }
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const response = await axios.get(`${config.API_URL}/api/rooms`);
+      setRooms(response.data);
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      Alert.alert('Error', 'Failed to load rooms!');
     }
   };
 
@@ -87,12 +101,10 @@ const EventsScreen = () => {
     setEditingEvent(event);
     setEventname(event.eventname);
     
-    // Parse the date string
     const [year, month, day] = event.date.split('-');
     const eventDate = new Date(year, month - 1, day);
     setDate(eventDate);
     
-    // Parse the time string
     const [hours, minutes] = event.time.split(':');
     const [hourValue, period] = hours.split(' ');
     let hour = parseInt(hourValue, 10);
@@ -201,10 +213,10 @@ const EventsScreen = () => {
         </View>
         <View style={styles.eventActions}>
           <TouchableOpacity onPress={() => handleEditEvent(item)}>
-            <Ionicons name="create-outline" size={24} color="#FF4B3A" />
+            <Ionicons name="create-outline" size={24} color="#FFB347" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleDeleteEvent(item._id)}>
-            <Ionicons name="trash-outline" size={24} color="#FF4B3A" />
+            <Ionicons name="trash-outline" size={24} color="#FFB347" />
           </TouchableOpacity>
         </View>
       </View>
@@ -263,12 +275,12 @@ const EventsScreen = () => {
               onChange={onTimeChange}
             />
           )}
-          <TextInput
-            placeholder="Location"
-            value={location}
-            onChangeText={setLocation}
+          <TouchableOpacity
             style={styles.input}
-          />
+            onPress={() => setShowLocationPicker(true)}
+          >
+            <Text>{location || 'Select Location'}</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
             <Ionicons name="image-outline" size={24} color="#fff" />
             <Text style={styles.imageButtonText}>Pick an Image</Text>
@@ -303,6 +315,38 @@ const EventsScreen = () => {
           ListFooterComponent={<View style={{ height: 100 }} />}
         />
       </KeyboardAvoidingView>
+      <Modal
+        visible={showLocationPicker}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Location</Text>
+            <FlatList
+              data={rooms}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.locationItem}
+                  onPress={() => {
+                    setLocation(item.name);
+                    setShowLocationPicker(false);
+                  }}
+                >
+                  <Text>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowLocationPicker(false)}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -320,10 +364,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FF4B3A',
+    backgroundColor: '#FFB347',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -336,50 +380,54 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     margin: 20,
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   formTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 20,
     color: '#333',
+    textAlign: 'center',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ddd',
-    padding: 10,
-    borderRadius: 5,
+    padding: 12,
+    borderRadius: 8,
     marginBottom: 15,
     fontSize: 16,
+    backgroundColor: '#f9f9f9',
   },
   imageButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF4B3A',
+    justifyContent: 'center',
+    backgroundColor: '#FFB347',
     padding: 12,
-    borderRadius: 5,
+    borderRadius: 8,
     marginBottom: 15,
   },
   imageButtonText: {
     color: '#fff',
     marginLeft: 10,
     fontSize: 16,
+    fontWeight: 'bold',
   },
   imagePreview: {
     width: '100%',
     height: 200,
     marginBottom: 15,
-    borderRadius: 5,
+    borderRadius: 8,
   },
   submitButton: {
-    backgroundColor: '#FF4B3A',
+    backgroundColor: '#FFB347',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 8,
     alignItems: 'center',
   },
   submitButtonText: {
@@ -393,26 +441,28 @@ const styles = StyleSheet.create({
   eventCard: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 15,
     overflow: 'hidden',
     marginHorizontal: 20,
     marginTop: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   eventImage: {
     width: 120,
     height: 120,
+    borderTopLeftRadius: 15,
+    borderBottomLeftRadius: 15,
   },
   eventInfo: {
     flex: 1,
     padding: 15,
   },
   eventTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
@@ -420,10 +470,10 @@ const styles = StyleSheet.create({
   eventDetails: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 8,
   },
   eventText: {
-    marginLeft: 5,
+    marginLeft: 8,
     fontSize: 14,
     color: '#666',
   },
@@ -431,6 +481,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     marginTop: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    width: '80%',
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+    color: '#333',
+  },
+  locationItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  closeButton: {
+    backgroundColor: '#FFB347',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
