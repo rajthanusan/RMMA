@@ -24,7 +24,7 @@ export default function RegisterAccountScreen() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        const response = await axios.get(`${config.API_URL}/auth/users`);
+        const response = await axios.get(`${config.API_URL}/api/users`);
         const filteredOperators = response.data.filter((user) => user.role === "operator");
     
         
@@ -66,7 +66,7 @@ export default function RegisterAccountScreen() {
     }
 
     try {
-      const response = await axios.post(`${config.API_URL}/auth/register-operator`, {
+      const response = await axios.post(`${config.API_URL}/api/register-operator`, {
         username,
         email,
         password,
@@ -92,7 +92,7 @@ export default function RegisterAccountScreen() {
   };
   const handleDeleteUser = async (id) => {
     try {
-        const response = await axios.delete(`${config.API_URL}/auth/users/${id}`);
+        const response = await axios.delete(`${config.API_URL}/api/users/${id}`);
         if (response.status === 200) {
             setOperators(operators.filter((operator) => operator._id !== id));  
             Alert.alert("Success", "Operator deleted successfully!");

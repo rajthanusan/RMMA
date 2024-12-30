@@ -65,7 +65,7 @@ export default function ProfileScreen({ navigation }) {
     }
 
     try {
-      const response = await axios.post(`${config.API_URL}/auth/register`, {
+      const response = await axios.post(`${config.API_URL}/api/register`, {
         email,
         password,
         username,
@@ -102,7 +102,7 @@ export default function ProfileScreen({ navigation }) {
     }
 
     try {
-      const response = await axios.post(`${config.API_URL}/auth/login`, {
+      const response = await axios.post(`${config.API_URL}/api/login`, {
         email,
         password,
       });
@@ -278,12 +278,12 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#F7F7F7",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#FFB347",
+    color: "#000",
   },
   profilePic: {
     width: 100,

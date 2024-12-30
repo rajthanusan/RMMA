@@ -16,16 +16,14 @@ import PropTypes from 'prop-types';
 import config from '../../config';
 
 const CategoryItem = ({ icon, name, onPress, isSelected }) => (
-  <TouchableOpacity
-    style={[styles.categoryItem, isSelected && styles.selectedCategory]}
-    onPress={onPress}
-  >
+  <TouchableOpacity style={[styles.categoryItem, isSelected && styles.selectedCategoryItem]} onPress={() => onPress(name)}>
     <View style={[styles.categoryIcon, isSelected && styles.selectedCategoryIcon]}>
-      <Ionicons name={icon} size={24} color={isSelected ? '#FFFFFF' : '#000'} />
+      <Ionicons name={icon} size={24} color={isSelected ? "#FFFFFF" : "#FFB347"} />
     </View>
-    <Text style={[styles.categoryName, isSelected && styles.selectedCategoryText]}>{name}</Text>
+    <Text style={[styles.categoryName, isSelected && { color: '#FFB347' }]}>{name}</Text>
   </TouchableOpacity>
 );
+
 
 CategoryItem.propTypes = {
   icon: PropTypes.string.isRequired,
@@ -204,9 +202,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+    paddingTop: 40,
   },
   greeting: {
     fontSize: 28,
@@ -256,32 +253,41 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   categoriesContainer: {
-    paddingHorizontal: 0,
+    paddingHorizontal: 15,
   },
   categoryItem: {
     alignItems: 'center',
-    marginHorizontal: 10,
+    marginHorizontal: 5,
+    opacity: 0.7,
   },
   categoryIcon: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#FFE5E5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
-    elevation: 2,
+    marginBottom: 5,
+  },
+  categoryName: {
+    fontSize: 12,
+  },
+  selectedCategoryItem: {
+    opacity: 1,
   },
   selectedCategoryIcon: {
     backgroundColor: '#FFB347',
   },
-  categoryName: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '600',
+  selectedCategoryName: {
+    color: '#FFB347',
+    fontWeight: 'bold',
+  },
+  foodItemsContainer: {
+    marginVertical: 20,
+    paddingHorizontal: 20,
   },
   restaurantsContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingBottom: 20,
   },
   restaurantCard: {
